@@ -12,7 +12,7 @@ router = APIRouter()
 class GoogleTokenRequest(BaseModel):
     token: str
 
-@router.post("/auth/google/login")
+@router.post("/api/auth/google/login")
 async def google_login(body: GoogleTokenRequest, response: Response):
     token = body.token
     
@@ -55,4 +55,7 @@ async def google_login(body: GoogleTokenRequest, response: Response):
     jwt_token = create_jwt(user_id=user_id, email=email)
     set_auth_cookie(response, jwt_token)
     
-    return {"user": {"email": email, "full_name": full_name, "profile_pic": profile_pic}}
+    return {
+        "user": {"email": email, "full_name": full_name, "profile_pic": profile_pic},
+        "token": jwt_token
+    }

@@ -17,7 +17,7 @@ PHOTO_URL = "https://graph.microsoft.com/v1.0/me/photo/$value"
 class MicrosoftTokenRequest(BaseModel):
     access_token: str
 
-@router.post("/auth/microsoft/login")
+@router.post("/api/auth/microsoft/login")
 async def microsoft_login(body: MicrosoftTokenRequest, response: Response):
     access_token = body.access_token
 
@@ -75,4 +75,7 @@ async def microsoft_login(body: MicrosoftTokenRequest, response: Response):
     jwt_token = create_jwt(user_id=user_id, email=email)
     set_auth_cookie(response, jwt_token)
 
-    return {"user": {"email": email, "full_name": full_name, "profile_pic": profile_pic}}
+    return {
+        "user": {"email": email, "full_name": full_name, "profile_pic": profile_pic},
+        "token": jwt_token
+    }

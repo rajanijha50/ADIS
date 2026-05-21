@@ -9,7 +9,7 @@ from bson import ObjectId
 
 router = APIRouter()
 
-@router.get("/auth/me")
+@router.get("/api/auth/me")
 def get_me(request: Request):
     token = get_token_from_cookie(request)
     if not token:
@@ -39,7 +39,7 @@ class EmailLoginRequest(BaseModel):
     email: str
     password: str
 
-@router.post("/auth/email/signup")
+@router.post("/api/auth/email/signup")
 def signup(body: EmailSignupRequest, response: Response):
     existingUser = UserModel.find_one({"email": body.email})
     if existingUser:
@@ -61,7 +61,7 @@ def signup(body: EmailSignupRequest, response: Response):
     set_auth_cookie(response, jwt_token)
     return {"message": "Signup successful"}
 
-@router.post("/auth/email/login")
+@router.post("/api/auth/email/login")
 def login(body: EmailLoginRequest, response: Response):
     user = UserModel.find_one({"email": body.email})
     
@@ -76,7 +76,19 @@ def login(body: EmailLoginRequest, response: Response):
     set_auth_cookie(response, jwt_token)
     return {"message": "Login successful"}
 
-@router.post("/auth/logout")
+@router.post("/api/auth/logout")
 def logout(response: Response):
     response.delete_cookie(key="auth_token")
     return {"message": "Logged out"}
+
+class SetTokenRequest(BaseModel):
+    token: str
+
+@router.post("/api/auth/set-token")
+def set_token(body: SetTokenRequest, response: Response):
+    try:
+        verify_jwt(body.token)
+        set_auth_cookie(response, body.token)
+        return {"message": "Cookie set successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Invalid token")

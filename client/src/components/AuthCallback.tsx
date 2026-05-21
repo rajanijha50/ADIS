@@ -11,9 +11,21 @@ export default function AuthCallback() {
     if (token) {
       console.log("Got the token: ", token);
       localStorage.setItem("auth_token", token);
-      
-      // Navigate to home
-      navigate("/");
+
+      // Post token to /api/auth/set-token to set the HttpOnly cookie in the current session
+      fetch("http://localhost:8000/api/auth/set-token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+        credentials: "include",
+      })
+        .then(() => {
+          navigate("/");
+        })
+        .catch((err) => {
+          console.error("Failed to set auth cookie:", err);
+          navigate("/");
+        });
     } else {
       console.error("No token received. Authentication failed.");
       navigate("/auth");

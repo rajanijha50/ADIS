@@ -24,12 +24,13 @@ const Home = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch("http://localhost:8000/auth/me", {
+        const res = await fetch("http://localhost:8000/api/auth/me", {
           method: "GET",
           credentials: "include",
         });
         if (res.ok) {
           const data = await res.json();
+          console.log("logged in: ", data)
           dispatch(setUser(data));
         } else {
           console.log("not logged in: ", res);
@@ -56,17 +57,35 @@ const Home = () => {
   return (
     <div className="min-w-screen min-h-screen flex justify-between overflow-hidden relative">
       <Sidebar />
-      {opened ? <VoiceAssistantNewUI setOpened={setOpened}/> : <HeroSection setOpened={setOpened} />}
+      {opened ? <VoiceAssistantNewUI setOpened={setOpened} /> : <HeroSection setOpened={setOpened} />}
     </div>
   );
+};
+
+const IpcAuthHandler = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      const handleAuthToken = (_event: any, token: string) => {
+        console.log("Received auth token via IPC:", token);
+        navigate(`/api/auth/callback?token=${token}`);
+      };
+
+      window.ipcRenderer.on("auth-token-received", handleAuthToken);
+    }
+  }, [navigate]);
+
+  return null;
 };
 
 export default function App() {
   return (
     <BrowserRouter>
+      <IpcAuthHandler />
       <Routes>
         <Route path="/auth" element={<Auth />} />
-        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/api/auth/callback" element={<AuthCallback />} />
         <Route path="/" element={<Home />} />
         <Route path="/settings" element={<Settings />}>
           <Route index element={<Navigate to="general" replace />} />
@@ -76,6 +95,6 @@ export default function App() {
       </Routes>
       <CustomToaster />
     </BrowserRouter>
-    
+
   );
 }
