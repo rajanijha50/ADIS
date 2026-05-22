@@ -1,6 +1,6 @@
+from config.config import MAP_API_KEY
 import datetime
 import requests
-import asyncio
 
 def get_time() -> dict:
     now = datetime.datetime.now()
@@ -26,33 +26,31 @@ def get_date() -> dict:
     }
 
 
-def get_current_ip_info():
+def get_current_ip():
+    """Get current IP info """
     data = requests.get("https://ipinfo.io/json").json()
     return data
 
-def get_current_map_weather(lat:float,lon:float, API_KEY:str):
-    """ get current weather using Google Maps API """
+def get_current_weather():
+    """Get current weather using Google Maps API """
     
     try:
-        data = requests.get(f"https://weather.googleapis.com/v1/currentConditions:lookup?key={API_KEY}&location.latitude={lat}&location.longitude={lon}").json()
+        IP_data = get_current_ip()
+        lat, lon = IP_data["loc"].split(",")
+        data = requests.get(f"https://weather.googleapis.com/v1/currentConditions:lookup?key={MAP_API_KEY}&location.latitude={lat}&location.longitude={lon}").json()
         return data
     except Exception as e:
         print("error: ", e)
 
 
-def handle_get_current():
-    return 'get current function '
-
-# if __name__ == "__main__":
-    # from dotenv import load_dotenv
-    # import os
-    # load_dotenv()
-    # API_KEY = os.getenv("GMAP_DEMO_KEY")
-
-    # IP_data = get_current_ip_info()
-    # lat, lon = IP_data["loc"].split(",")
-    # print("latitude: ", lat)
-    # print("longitude: ", lon)
-    # Weather_data = get_current_map_weather(float(lat), float(lon), API_KEY)
-    # print("Weather data: ", Weather_data)
-    # print(get_date())
+def handle_get_current(command: str):
+    command = command.lower()
+    if "time" in command:
+        return get_time()
+    elif "date" in command:
+        return get_date()
+    elif "weather" in command:
+        return get_current_weather()
+    else:
+        return 'Invalid command'
+    

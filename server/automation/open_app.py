@@ -1,15 +1,16 @@
 import keyboard
 import time
 
-def handle_open_app(appName: str):
-    # first check if application is present in the device, if not then open its web app
-    keyboard.press_and_release('win')
-    time.sleep(0.5)
-    keyboard.write(appName.lower())
-    time.sleep(1)
-    keyboard.press_and_release('enter')
+def handle_open_app(appName: str) -> bool:
+    try:
+        keyboard.press_and_release('win')
+        time.sleep(1)
+        keyboard.write(appName.lower())
+        time.sleep(1.5)
+        keyboard.press_and_release('enter')
+        return True
+    except Exception as e:
+        print(f"Error opening {appName}: {e}")
+        return False
 
-
-# handle_open_app("settings")
-# handle_open_app("notion")
-# handle_open_app('ms store')
+# print(handle_open_app('clock'))

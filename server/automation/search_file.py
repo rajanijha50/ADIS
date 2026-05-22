@@ -35,8 +35,14 @@ def _run_search(command: str) -> list[str]:
 #  FILE SEARCH FUNCTIONS
 # ──────────────────────────────────────────────
 
-def search_file_in_system(name: str) -> list[str]:
+def search_file_in_system(name: str, folder: str = None, drive: str = None) -> list[str]:
     """Search for a file by name across ALL drives."""
+    if folder:
+        folder = folder.rstrip("\\")
+        return _run_search(f'where /R "{folder}" "{name}" 2>nul')
+    if drive:
+        drive = drive.rstrip("\\")
+        return _run_search(f'where /R {drive}\\ "{name}" 2>nul')
     results = []
     for drive in _get_all_drives():
         results.extend(
@@ -45,19 +51,7 @@ def search_file_in_system(name: str) -> list[str]:
     return results
 
 
-def search_file_in_drive(name: str, drive: str = "C:") -> list[str]:
-    """Search for a file by name in a specific drive."""
-    drive = drive.rstrip("\\")
-    return _run_search(f'where /R {drive}\\ "{name}" 2>nul')
-
-
-def search_file_in_folder(name: str, folder: str) -> list[str]:
-    """Search for a file by name inside a specific folder (recursive)."""
-    folder = folder.rstrip("\\")
-    return _run_search(f'where /R "{folder}" "{name}" 2>nul')
-
-
-def search_file_by_extension(extension: str, folder: str = None) -> list[str]:
+def search_file_by_extension(extension: str, folder: str = None, drive: str = None) -> list[str]:
     """Search for files with a given extension.
 
     If folder is provided, searches inside that folder.
@@ -70,6 +64,10 @@ def search_file_by_extension(extension: str, folder: str = None) -> list[str]:
         folder = folder.rstrip("\\")
         return _run_search(f'where /R "{folder}" "{pattern}" 2>nul')
 
+    if drive:
+        drive = drive.rstrip("\\")
+        return _run_search(f'where /R {drive}\\ "{pattern}" 2>nul')
+
     results = []
     for drive in _get_all_drives():
         results.extend(
@@ -78,14 +76,7 @@ def search_file_by_extension(extension: str, folder: str = None) -> list[str]:
     return results
 
 
-def search_file_by_extension_in_drive(extension: str, drive: str = "C:") -> list[str]:
-    """Search for files with a given extension in a specific drive."""
-    ext = extension if extension.startswith(".") else f".{extension}"
-    drive = drive.rstrip("\\")
-    return _run_search(f'where /R {drive}\\ "*{ext}" 2>nul')
-
-
-def search_file_by_name_contains(keyword: str, folder: str = None) -> list[str]:
+def search_file_by_keyword(keyword: str, folder: str = None, drive: str = None) -> list[str]:
     """Search for files whose name contains the given keyword.
 
     Uses `dir /S /B` with a wildcard pattern.
@@ -94,6 +85,10 @@ def search_file_by_name_contains(keyword: str, folder: str = None) -> list[str]:
     if folder:
         folder = folder.rstrip("\\")
         return _run_search(f'dir /S /B "{folder}\\{pattern}" 2>nul')
+
+    if drive:
+        drive = drive.rstrip("\\")
+        return _run_search(f'dir /S /B {drive}\\{pattern} 2>nul')
 
     results = []
     for drive in _get_all_drives():
@@ -120,7 +115,6 @@ def search_file_by_size(min_bytes: int = 0, max_bytes: int = None, folder: str =
             f'| Select-Object -ExpandProperty FullName'
         )
     else:
-        # Search all drives
         ps_cmd = (
             f'Get-PSDrive -PSProvider FileSystem | ForEach-Object {{ '
             f'Get-ChildItem -Path $_.Root -Recurse -File -ErrorAction SilentlyContinue '
@@ -130,21 +124,26 @@ def search_file_by_size(min_bytes: int = 0, max_bytes: int = None, folder: str =
     return _run_search(f'powershell -Command "{ps_cmd}"')
 
 
-def search_file_modified_today(folder: str = None) -> list[str]:
+def search_file_modified_by_date(folder: str = None, date: str = "today") -> list[str]:
     """Search for files modified today."""
     target = f'"{folder}"' if folder else '"$env:SystemDrive\\"'
+
+    if date == "today":
+        date = '(Get-Date).Date'
+    else:
+        date = f'"(Get-Date -Date "{date}").Date"'
 
     if folder:
         ps_cmd = (
             f'Get-ChildItem -Path {target} -Recurse -File -ErrorAction SilentlyContinue '
-            f'| Where-Object {{ $_.LastWriteTime.Date -eq (Get-Date).Date }} '
+            f'| Where-Object {{ $_.LastWriteTime.Date -eq {date} }} '
             f'| Select-Object -ExpandProperty FullName'
         )
     else:
         ps_cmd = (
             f'Get-PSDrive -PSProvider FileSystem | ForEach-Object {{ '
             f'Get-ChildItem -Path $_.Root -Recurse -File -ErrorAction SilentlyContinue '
-            f'| Where-Object {{ $_.LastWriteTime.Date -eq (Get-Date).Date }} '
+            f'| Where-Object {{ $_.LastWriteTime.Date -eq {date} }} '
             f'| Select-Object -ExpandProperty FullName }}'
         )
     return _run_search(f'powershell -Command "{ps_cmd}"')
@@ -174,8 +173,20 @@ def search_file_by_date_range(start_date: str, end_date: str, folder: str = None
 #  FOLDER SEARCH FUNCTIONS
 # ──────────────────────────────────────────────
 
-def search_folder_in_system(name: str) -> list[str]:
+def search_folder_in_system(name: str, folder: str = None, drive:str = None) -> list[str]:
     """Search for a folder by name across ALL drives."""
+    if folder:
+        folder = folder.rstrip("\\")
+        return _run_search(
+        f'dir /S /B /AD "{folder}" 2>nul | findstr /I /E "\\\\{name}"'
+        )
+
+    if drive:
+        drive = drive.rstrip("\\")
+        return _run_search(
+            f'dir /S /B /AD {drive}\\ 2>nul | findstr /I /E "\\\\{name}"'
+        )
+
     results = []
     for drive in _get_all_drives():
         results.extend(
@@ -186,29 +197,19 @@ def search_folder_in_system(name: str) -> list[str]:
     return results
 
 
-def search_folder_in_drive(name: str, drive: str = "C:") -> list[str]:
-    """Search for a folder by name in a specific drive."""
-    drive = drive.rstrip("\\")
-    return _run_search(
-        f'dir /S /B /AD {drive}\\ 2>nul | findstr /I /E "\\\\{name}"'
-    )
-
-
-def search_folder_in_folder(name: str, folder: str) -> list[str]:
-    """Search for a folder by name inside a specific parent folder (recursive)."""
-    folder = folder.rstrip("\\")
-    return _run_search(
-        f'dir /S /B /AD "{folder}" 2>nul | findstr /I /E "\\\\{name}"'
-    )
-
-
-def search_folder_by_name_contains(keyword: str, folder: str = None) -> list[str]:
+def search_folder_by_keyword(keyword: str, folder: str = None, drive: str = None) -> list[str]:
     """Search for folders whose name contains the given keyword."""
     if folder:
         folder = folder.rstrip("\\")
         return _run_search(
             f'dir /S /B /AD "{folder}" 2>nul | findstr /I "\\\\[^\\\\]*{keyword}[^\\\\]*$"'
         )
+
+    if drive:
+        drive = drive.rstrip("\\")
+        return _run_search(
+                f'dir /S /B /AD {drive}\\ 2>nul | findstr /I "\\\\[^\\\\]*{keyword}[^\\\\]*$"'
+            )
 
     results = []
     for drive in _get_all_drives():
@@ -289,5 +290,18 @@ def search_folder_by_date_range(start_date: str, end_date: str, folder: str = No
     return _run_search(f'powershell -Command "{ps_cmd}"')
 
 
-def handle_search_file():
-    return 'search file function'
+
+# search_file_and_folders = {
+#     'search_file_by_name': search_file_in_system,
+#     'search_file_by_extension': search_file_by_extension,
+#     'search_file_by_keyword': search_file_by_keyword,
+#     'search_file_by_size': search_file_by_size,
+#     'search_file_modified_by_date': search_file_modified_by_date,
+#     'search_file_by_date_range': search_file_by_date_range,
+#     'search_folder_by_name': search_folder_in_system,
+#     'search_folder_by_keyword': search_folder_by_keyword,
+#     'search_folder_modified_today': search_folder_modified_today,
+#     'search_folder_by_date_range': search_folder_by_date_range,
+#     'search_empty_folders': search_empty_folders
+# }
+
