@@ -12,19 +12,23 @@ import {
   Type,
 } from "lucide-react";
 import { useState } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "../../app/store";
 import { SendNotification } from "../SendNotification";
 
 export default function AssistantSettings() {
-  // State for AI Personality
-  const [assistantName, setAssistantName] = useState("Aura");
+  const { name: assistantName } = useSelector((state: RootState) => state.assistant);
+  const email = useSelector((state: RootState) => state.user.user?.email);
   const [toneStyle, setToneStyle] = useState("Professional & Helpful");
   const [systemPrompt, setSystemPrompt] = useState(
     "You are a helpful AI assistant that provides accurate information...",
   );
 
   // State for Model Configuration
-  const [llmProvider, setLlmProvider] = useState("Google (Gemini)");
-  const [modelSelection, setModelSelection] = useState("Gemini 1.5 Pro");
+  const llmProviderOptions = ['Google Gemini', 'Groq', 'Cerebras']
+  const [llmModelOptions, setLlmModelOptions] = useState(["gemini-2.5-flash-lite", "gemini-3.5-flash", "gemini-2.5-flash", "gemini-2.5-flash-lite"])
+  const [llmProvider, setLlmProvider] = useState("Google Gemini");
+  const [modelSelection, setModelSelection] = useState("gemini-2.5-flash-lite");
   const [creativity, setCreativity] = useState(50);
   const [maxTokens, setMaxTokens] = useState(2048);
 
@@ -38,15 +42,33 @@ export default function AssistantSettings() {
   const [alwaysListening, setAlwaysListening] = useState(true);
   const [spokenResponses, setSpokenResponses] = useState(false);
 
-  const handleUpdateSettings = () => {
-    // Validation
-    if (!assistantName.trim()) {
-      SendNotification("Assistant name cannot be empty", "error");
-      return;
+  const handleUpdateSettings = async () => {
+    try {
+      const req = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/user/preferences`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          llm_provider: llmProvider,
+          llm_model: modelSelection,
+          api_key: "",
+          tone: toneStyle,
+          language: "hi",
+          max_tokens: maxTokens,
+          temperature: creativity / 100,
+          system_prompt: systemPrompt,
+        }),
+      })
+      const res = await req.json();
+      console.log(res);
+      SendNotification(res.message, res.success ? "success" : "error");
+    } catch (error) {
+      console.error("Error updating assistant settings:", error);
+      SendNotification("Failed to update assistant settings", "error");
     }
 
-    // In a real app, we would save to API/LocalStorage here
-    SendNotification("Assistant settings updated successfully!", "success");
   };
 
   const handleTestVoice = () => {
@@ -54,12 +76,19 @@ export default function AssistantSettings() {
     // Voice testing logic would go here
   };
 
-  const handleUpdatePersonality = () => {
-    SendNotification("Personality updated successfully!", "success");
-  }
 
-  const handleUpdateConfiguration = () => {
-    SendNotification("Configuration updated successfully!", "success");
+  const handleLLMProviderChange = (provider: string) => {
+    const ProviderOptions = {
+      'Google Gemini': ["gemini-2.5-flash-lite", "gemini-3.5-flash", "gemini-2.5-flash", "gemini-2.5-flash-lite"],
+      'Groq': ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "openai/gpt-oss-20b", "openai/gpt-oss-120b"],
+      'Cerebras': ["gpt-oss-120b", "llama3.1-8b", "qwen-3-235b-a22b-instruct-2507", "zai-glm-4.7"]
+    } as const
+    setLlmProvider(provider)
+    const options = ProviderOptions[provider as keyof typeof ProviderOptions] || []
+    setLlmModelOptions(options as unknown as string[])
+    if (options.length > 0) {
+      setModelSelection(options[0])
+    }
   }
 
   return (
@@ -98,7 +127,8 @@ export default function AssistantSettings() {
                 <input
                   type="text"
                   value={assistantName}
-                  onChange={(e) => setAssistantName(e.target.value)}
+                  readOnly
+                  onClick={() => { SendNotification("Sorry! you can't change the name of ADIS", "error"); }}
                   className="w-full bg-input border border-border-input rounded-lg px-4 py-2.5 text-primary focus:outline-none focus:border-border-input-focus transition-all"
                 />
               </div>
@@ -146,14 +176,6 @@ export default function AssistantSettings() {
               </p>
             </div>
           </div>
-          <div className="mt-8 flex justify-end gap-4">
-            <button
-              onClick={handleUpdatePersonality}
-              className="px-5 py-2.5 bg-accent-primary hover:bg-accent-secondary text-white font-medium rounded-lg transition-colors shadow-glow active:scale-95"
-            >
-              Update Personality
-            </button>
-          </div>
         </section>
 
         {/* Model Configuration Section */}
@@ -180,18 +202,14 @@ export default function AssistantSettings() {
                 </label>
                 <select
                   value={llmProvider}
-                  onChange={(e) => setLlmProvider(e.target.value)}
+                  onChange={(e) => handleLLMProviderChange(e.target.value)}
                   className="w-full bg-input border border-border-input rounded-lg px-4 py-2.5 text-primary focus:outline-none focus:border-border-input-focus transition-all cursor-pointer"
                 >
-                  <option className="bg-app text-primary">OpenAI (GPT)</option>
-                  <option className="bg-app text-primary">
-                    Anthropic (Claude)
-                  </option>
-                  <option className="bg-app text-primary">
-                    Google (Gemini)
-                  </option>
-                  <option className="bg-app text-primary">Meta (Llama)</option>
-                  <option className="bg-app text-primary">Mistral AI</option>
+                  {llmProviderOptions.map((provider, index) => (
+
+                    <option key={index} className="bg-app text-primary">{provider}</option>
+                  ))}
+
                 </select>
               </div>
               <div className="space-y-3">
@@ -203,17 +221,10 @@ export default function AssistantSettings() {
                   onChange={(e) => setModelSelection(e.target.value)}
                   className="w-full bg-input border border-border-input rounded-lg px-4 py-2.5 text-primary focus:outline-none focus:border-border-input-focus transition-all cursor-pointer"
                 >
-                  <option className="bg-app text-primary">
-                    GPT-4o (Recommended)
-                  </option>
-                  <option className="bg-app text-primary">GPT-4 Turbo</option>
-                  <option className="bg-app text-primary">GPT-3.5 Turbo</option>
-                  <option className="bg-app text-primary">
-                    Claude 3.5 Sonnet
-                  </option>
-                  <option className="bg-app text-primary">
-                    Gemini 1.5 Pro
-                  </option>
+                  {llmModelOptions.map((model, index) => (
+
+                    <option key={index} className="bg-app text-primary">{model}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -269,10 +280,10 @@ export default function AssistantSettings() {
           </div>
           <div className="mt-8 flex justify-end gap-4">
             <button
-              onClick={handleUpdateConfiguration}
+              onClick={handleUpdateSettings}
               className="px-5 py-2.5 bg-accent-primary hover:bg-accent-secondary text-white font-medium rounded-lg transition-colors shadow-glow active:scale-95"
             >
-              Update Configuration
+              Update Settings
             </button>
           </div>
         </section>
