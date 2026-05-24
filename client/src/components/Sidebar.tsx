@@ -1,46 +1,46 @@
 import { useEffect, useRef, useState } from "react";
 import {
   MessageSquare,
-  Plus,
-  MoreVertical,
-  AudioLines,
   SidebarClose,
   EditIcon,
   SidebarOpen,
 } from "lucide-react";
 import MoreOptions from "./MoreOptions";
 import AudioLinesIcon from "./AudioLinesIcon";
+import { useSelector } from "react-redux";
+import { RootState } from "../app/store";
+import { useNavigate, useParams } from "react-router-dom";
 
 interface ChatItem {
-  id: string;
+  session_id: string;
   title: string;
+  created_at: Date;
 }
 
-const AssistantName = import.meta.env.VITE_ASSISTANT_NAME;
-const UserName = import.meta.env.VITE_USER_NAME;
-const AssistantVersion = import.meta.env.VITE_ASSISTANT_VERSION;
-
-const recentChats: ChatItem[] = [
-  { id: "1", title: "Greeting..." },
-  { id: "2", title: "Project Aura Planning" },
-  { id: "3", title: "Voice Memo 3/17" },
-  { id: "4", title: "Travel Itinerary" },
-
-];
-
 const Sidebar = () => {
-  const [activeChat, setActiveChat] = useState<string>("1");
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(localStorage.getItem("sidebar_open") === "true" ? true : false);
+  const { user } = useSelector((state: RootState) => state.user);
+  const { name: AssistantName, userName: UserName, version: AssistantVersion } = useSelector(
+    (state: RootState) => state.assistant
+  );
+  const navigate = useNavigate();
+  const { session_id } = useParams<{ session_id?: string }>();
+  const [recentChats, setRecentChats] = useState<ChatItem[]>([]);
+  const [activeChat, setActiveChat] = useState<string>();
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(
+    localStorage.getItem("sidebar_open") === "true" ? true : false,
+  );
   const [isMoreOptionEnabled, setIsMoreOptionEnabled] =
     useState<boolean>(false);
-  const [isHovered, setIsHovered] = useState<boolean>(false);
+
+  const displayName = user?.full_name || UserName || "User";
+  const profilePic = user?.profile_pic;
 
   const childRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  
+
   useEffect(() => {
     localStorage.setItem("sidebar_open", isSidebarOpen.toString());
-  },[isSidebarOpen])
+  }, [isSidebarOpen]);
 
   useEffect(() => {
     const handleClickOutside = (event: any) => {
@@ -61,231 +61,246 @@ const Sidebar = () => {
     };
   }, [isMoreOptionEnabled]);
 
-  // INFO: small width
-  if (!isSidebarOpen) {
-    return (
-      <aside className="min-w-8 max-h-screen flex flex-col px-2 py-5 relative z-100 border-r border-border-sidebar bg-sidebar">
-        {/* Brand / Logo */}
-        <div className="w-full flex justify-center items-center gap-3 mb-6 border-0">
-          <div
-            className="w-10 h-10 rounded-[10px] flex items-center justify-center shrink-0"
-            style={{ background: !isHovered ? `var(--color-accent-gradient)` : "" }}
-            onClick={() => setIsSidebarOpen(true)}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-          >
-            {isHovered ? (
-              <SidebarOpen size={22} strokeWidth={1.5} />
-            ) : (
-              // <AudioLines
-              //   className="w-5 h-5"
-              //   style={{ color: "var(--color-text-primary)" }}
-              // />
-              <AudioLinesIcon size={22} infinite={true}/>
-            )}
-          </div>
-        </div>
+  const getAllChats = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/text/list_sessions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: user?.email
+        }),
+      })
 
-        {/* New Chat Button */}
-        <button
-          id="new-chat-btn"
-          className="w-9 h-9 p-2 text-sm rounded-lg flex items-center justify-center gap-2 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer bg-new-chat text-primary mx-auto"
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor =
-              "var(--color-bg-new-chat-hover)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "var(--color-bg-new-chat)")
-          }
-        >
-          <EditIcon className="w-4 h-4" />
-        </button>
-        {/* User Profile */}
-          {isMoreOptionEnabled && <MoreOptions refMe={childRef} />}
-        <div className="flex justify-center items-center gap-3 p-2 mt-auto hover:bg-white/20 rounded-full">
+      const data = await res.json();
+      // console.log(data);
+      if (res.ok) {
+        setRecentChats(data.data)
+      }
 
-          <button
-            ref={buttonRef}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 bg-avatar text-primary"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsMoreOptionEnabled((prev) => !prev);
-            }}
-          >
-            {UserName?.charAt(0)?.toUpperCase()}
-          </button>
-        </div>
-      </aside>
-    );
+    } catch (error) {
+      console.log(error);
+    }
   }
 
-  // INFO: full chat width
+  // Fetch recent chats whenever user logins or session_id changes (new chat created or switched)
+  useEffect(() => {
+    if (user?.email) {
+      getAllChats();
+    }
+  }, [user, session_id]);
+
+  // Synchronize activeChat state with the URL parameter session_id
+  useEffect(() => {
+    if (session_id) {
+      setActiveChat(session_id);
+    } else {
+      setActiveChat(undefined);
+    }
+  }, [session_id]);
+
+  // Navigate only when user clicked a chat that is different from current route
+  useEffect(() => {
+    if (activeChat && activeChat !== session_id) {
+      // console.log(activeChat)
+      navigate(`/chat/${activeChat}`)
+    }
+  }, [activeChat, session_id, navigate]);
+
+  const handleNewChat = () => {
+    setActiveChat(undefined);
+    navigate("/");
+  }
+
   return (
     <aside
-      className="w-60 min-w-60 max-h-screen flex flex-col p-5 relative z-100"
-      style={{
-        backgroundColor: "var(--color-bg-sidebar)",
-        borderRight: "1px solid var(--color-border-sidebar)",
+      className={`h-screen flex flex-col relative z-50 transition-all duration-300 ease-in-out border-r border-border-sidebar bg-sidebar ${isSidebarOpen ? "w-72 p-5" : "w-16 px-2 py-5 cursor-ew-resize"
+        }`}
+      onMouseDown={(e) => {
+        if (!isSidebarOpen) {
+          const target = e.target as HTMLElement;
+          if (
+            target.closest("button") ||
+            target.closest(".cursor-pointer")
+          ) {
+            return;
+          }
+          setIsSidebarOpen(true);
+        }
       }}
     >
       {/* Brand / Logo */}
-      <div className="flex justify-between items-center gap-3 mb-6 border-0">
+      <div
+        className={`flex items-center gap-3 mb-5 ${isSidebarOpen ? "justify-between" : "justify-center"}`}
+      >
         <div
-          className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
-          style={{ background: "var(--color-accent-gradient)" }}
+          className={`rounded-[10px] flex items-center justify-center shrink-0 transition-all duration-300 ${isSidebarOpen
+              ? "w-9 h-9"
+              : "w-10 h-10 cursor-pointer hover:scale-105 active:scale-95"
+            }`}
+          style={{
+            background: !isSidebarOpen ? "" : "var(--color-accent-gradient)",
+          }}
+          onClick={() => !isSidebarOpen && setIsSidebarOpen(true)}
         >
-          {/* <AudioLines
-            className="w-5 h-5"
-            style={{ color: "var(--color-text-primary)" }}
-          /> */}
-          <AudioLinesIcon size={22} infinite={true}/>
+          {!isSidebarOpen ? (
+            <SidebarOpen
+              size={20}
+              strokeWidth={1.5}
+              className="text-primary"
+            />
+          ) : (
+            <AudioLinesIcon size={isSidebarOpen ? 20 : 22} infinite={true} />
+          )}
         </div>
-        <div className="flex flex-col ">
-          <span
-            className="capitalize text-md font-semibold leading-tight"
-            style={{ color: "var(--color-text-primary)" }}
-          >
-            {AssistantName}
-          </span>
-          <span
-            className="text-[11px] font-normal"
-            style={{ color: "var(--color-text-tertiary)" }}
-          >
-            {AssistantVersion}
-          </span>
-        </div>
-        <div className="justify-self-end">
-          <button
-            className="p-2 hover:bg-white/20 rounded-md cursor-default"
-            onClick={() => setIsSidebarOpen(false)}
-          >
-            <SidebarClose size={22} strokeWidth={1.5} />
-          </button>
-        </div>
+
+        {isSidebarOpen && (
+          <>
+            <div className="flex flex-col flex-1 animate-in fade-in slide-in-from-left-2 duration-300">
+              <span className="capitalize text-sm font-bold leading-tight text-primary tracking-wide">
+                {AssistantName}
+              </span>
+              <span className="text-[10px] font-medium text-tertiary">
+                {AssistantVersion}
+              </span>
+            </div>
+            <button
+              className="p-1.5 hover:bg-white/10 rounded-lg transition-colors group"
+              onClick={() => setIsSidebarOpen(false)}
+            >
+              <SidebarClose
+                size={20}
+                className="text-tertiary group-hover:text-primary"
+                strokeWidth={1.5}
+              />
+            </button>
+          </>
+        )}
       </div>
 
       {/* New Chat Button */}
       <button
         id="new-chat-btn"
-        className="w-full py-3 px-4 text-sm rounded-[10px] flex items-center justify-center gap-2 mb-8 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer bg"
-        style={{
-          backgroundColor: "var(--color-bg-new-chat)",
-          color: "var(--color-text-primary)",
-        }}
+        onClick={handleNewChat}
+        className={`flex justify-center items-center gap-3 rounded-xl transition-all duration-300 group hover:-translate-y-0.5 active:translate-y-0 cursor-pointer shadow-lg shadow-black/20 ${isSidebarOpen ? "w-full py-3 px-4 mb-8" : "w-10 h-10 p-2 mx-auto mb-6"
+          }`}
+        style={{ backgroundColor: "var(--color-bg-new-chat)" }}
         onMouseEnter={(e) =>
-          (e.currentTarget.style.backgroundColor =
-            "var(--color-bg-new-chat-hover)")
+        (e.currentTarget.style.backgroundColor =
+          "var(--color-bg-new-chat-hover)")
         }
         onMouseLeave={(e) =>
           (e.currentTarget.style.backgroundColor = "var(--color-bg-new-chat)")
         }
       >
-        <EditIcon size={18} />
-        New Chat
+        <EditIcon
+          size={isSidebarOpen ? 18 : 18}
+          className="text-primary shrink-0"
+        />
+        {isSidebarOpen && (
+          <span className="text-sm font-semibold tracking-wide text-primary overflow-hidden whitespace-nowrap animate-in fade-in slide-in-from-left-2">
+            New Chat
+          </span>
+        )}
       </button>
 
       {/* Recent Activity Label */}
-      <p
-        className="text-[11px] font-semibold uppercase tracking-[0.08em] mb-3 pl-2"
-        style={{ color: "var(--color-text-sidebar-label)" }}
-      >
-        Recent Activity
-      </p>
+      {isSidebarOpen && (
+        <>
+          <p className="text-[10px] font-bold uppercase tracking-[0.12em] mb-4 pl-3 text-sidebar-label animate-in fade-in">
+            Recent Activity
+          </p>
 
-      {/* Chat List */}
-      <ul className="flex-1 overflow-y-auto flex flex-col gap-1">
-        {recentChats.map((chat) => (
-          <li
-            key={chat.id}
-            className="flex items-center gap-3 py-3 px-3 rounded-[10px] text-[13px] font-normal cursor-pointer transition-colors duration-150"
-            style={{
-              backgroundColor:
-                activeChat === chat.id
-                  ? "var(--color-bg-sidebar-item-active)"
-                  : "var(--color-bg-sidebar-item)",
-              color:
-                activeChat === chat.id
-                  ? "var(--color-text-primary)"
-                  : "var(--color-text-secondary)",
-            }}
-            onClick={() => setActiveChat(chat.id)}
-            onMouseEnter={(e) => {
-              if (activeChat !== chat.id) {
-                e.currentTarget.style.backgroundColor =
-                  "var(--color-bg-sidebar-item-hover)";
-                e.currentTarget.style.color = "var(--color-text-primary)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (activeChat !== chat.id) {
-                e.currentTarget.style.backgroundColor =
-                  "var(--color-bg-sidebar-item)";
-                e.currentTarget.style.color = "var(--color-text-secondary)";
-              }
-            }}
+
+          {/* Chat List */}
+          <ul
+            className={`flex-1 overflow-y-auto flex flex-col gap-1.5 custom-scrollbar ${!isSidebarOpen && "items-center"}`}
           >
-            <MessageSquare
-              className="w-4 h-4 shrink-0"
-              size={16}
-              strokeWidth={1.5}
-              style={{ color: "var(--color-text-tertiary)" }}
-            />
-            {chat.title}
-          </li>
-        ))}
-      </ul>
+            {recentChats.map((chat) => (
+              <li
+                key={chat.session_id}
+                className={`group flex items-center gap-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${isSidebarOpen ? "px-3" : "w-10 h-10 justify-center"
+                  }`}
+                style={{
+                  backgroundColor:
+                    activeChat === chat.session_id
+                      ? "var(--color-bg-sidebar-item-active)"
+                      : "transparent",
+                  color:
+                    activeChat === chat.session_id
+                      ? "var(--color-text-primary)"
+                      : "var(--color-text-secondary)",
+                }}
+                onClick={() => setActiveChat(chat.session_id)}
+                onMouseEnter={(e) => {
+                  if (activeChat !== chat.session_id) {
+                    e.currentTarget.style.backgroundColor =
+                      "var(--color-bg-sidebar-item-hover)";
+                    e.currentTarget.style.color = "var(--color-text-primary)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeChat !== chat.session_id) {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.color = "var(--color-text-secondary)";
+                  }
+                }}
+              >
+                <MessageSquare
+                  size={18}
+                  strokeWidth={1.5}
+                  className={`shrink-0 transition-colors duration-200 ${activeChat === chat.session_id
+                      ? "text-accent"
+                      : "text-tertiary group-hover:text-secondary"
+                    }`}
+                />
+                {isSidebarOpen && (
+                  <span className="truncate flex-1 animate-in fade-in slide-in-from-left-1">
+                    {chat.title}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </>
+
+      )}
 
       {/* User Profile */}
       <div
-        className="relative flex items-center gap-3 pt-4 p-2 mt-auto hover:bg-white/20 rounded-xl"
-        style={{ borderTop: "1px solid var(--color-border-divider)" }}
+        className={`relative flex justify-center items-center transition-all duration-300 mt-auto hover:bg-white/20 ${isSidebarOpen
+            ? "w-full h-12 gap-3 p-1 rounded-2xl bg-white/5"
+            : "h-12 justify-center p-1 rounded-md"
+          }`}
       >
         {isMoreOptionEnabled && <MoreOptions refMe={childRef} />}
 
         <div
-          className="w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-bold shrink-0"
-          style={{
-            backgroundColor: "var(--color-bg-avatar)",
-            color: "var(--color-text-primary)",
-          }}
-        >
-          {UserName.charAt(0).toUpperCase()}
-        </div>
-        <div className="flex flex-col flex-1 min-w-0">
-          <span
-            className="text-[13px] font-semibold leading-tight"
-            style={{ color: "var(--color-text-primary)" }}
-          >
-            {UserName}
-          </span>
-          <span
-            className="text-[11px] font-normal"
-            style={{ color: "var(--color-text-tertiary)" }}
-          >
-            Premium Member
-          </span>
-        </div>
-        <button
-          ref={buttonRef}
-          className="p-1 rounded-md transition-colors duration-150 cursor-pointer"
-          aria-label="User menu"
-          style={{ color: "var(--color-text-tertiary)" }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = "var(--color-text-primary)";
-            e.currentTarget.style.backgroundColor =
-              "var(--color-bg-sidebar-item-hover)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = "var(--color-text-tertiary)";
-            e.currentTarget.style.backgroundColor = "transparent";
-          }}
+          className={`transparent cursor-pointer rounded-full overflow-hidden flex items-center ${isSidebarOpen ? "justify-start" : "justify-center"} gap-4 font-bold text-white shadow-sm transition-all duration-300 w-full h-full`}
           onClick={(e) => {
+            e.preventDefault()
             e.stopPropagation();
             setIsMoreOptionEnabled((prev) => !prev);
           }}
         >
-          <MoreVertical size={18} strokeWidth={1.5} />
-        </button>
+          {profilePic ? (
+            <img
+              src={profilePic}
+              alt={displayName}
+              className="h-full object-cover rounded-full border-0"
+            />
+          ) : (
+            <span className="w-10 h-full rounded-full flex justify-center items-center border border-gray-400">
+              {displayName.charAt(0).toUpperCase()}
+            </span>
+          )}
+          {isSidebarOpen && (
+            <span className="text-sm font-bold text-primary truncate">
+              {displayName}
+            </span>
+          )}
+        </div>
       </div>
     </aside>
   );

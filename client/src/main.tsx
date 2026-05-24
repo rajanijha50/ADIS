@@ -20,7 +20,7 @@ const msalConfig = {
 const msalInstance = new PublicClientApplication(msalConfig);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
+
     <ReduxProvider>
       <MsalProvider instance={msalInstance}>
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
@@ -28,7 +28,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         </GoogleOAuthProvider>
       </MsalProvider>
     </ReduxProvider>
-  </React.StrictMode>,
+
 );
 
 // Use contextBridge

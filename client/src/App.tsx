@@ -1,36 +1,34 @@
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import Auth from "./components/Auth";
-import AuthCallback from "./components/AuthCallback";
-import Sidebar from "./components/Sidebar";
-import HeroSection from "./components/HeroSection";
-import MessageContainer from "./components/MessageContainer";
-import VoiceAssistantUI from "./components/AssistantUI";
-import VoiceAssistantNewUI from "./components/AssistantNewUI";
-import Settings from "./components/settings/Settings";
-import GeneralSettings from "./components/settings/GeneralSettings";
-import AssistantSettings from "./components/settings/AssistantSettings";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setUser, clearUser } from "./features/user/userSlice";
 import { RootState } from "./app/store";
 import { CustomToaster } from "./components/SendNotification";
+import Auth from "./components/Auth";
+import AuthCallback from "./components/AuthCallback";
+import HeroSection from "./components/HeroSection";
+import MessageContainer from "./components/MessageContainer";
+import VoiceAssistantNewUI from "./components/AssistantNewUI";
+import Settings from "./components/settings/Settings";
+import GeneralSettings from "./components/settings/GeneralSettings";
+import AssistantSettings from "./components/settings/AssistantSettings";
+import MainLayout from "./components/layout/MainLayout";
 
 const Home = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user, loading } = useSelector((state: RootState) => state.user);
+  const { loading } = useSelector((state: RootState) => state.user);
   const [opened, setOpened] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch("http://localhost:8000/api/auth/me", {
+        const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/auth/me`, {
           method: "GET",
           credentials: "include",
         });
         if (res.ok) {
           const data = await res.json();
-          console.log("logged in: ", data)
           dispatch(setUser(data));
         } else {
           console.log("not logged in: ", res);
@@ -40,7 +38,6 @@ const Home = () => {
       } catch (err) {
         console.error("Auth check failed:", err);
         dispatch(clearUser());
-        navigate("/auth");
       }
     };
     checkAuth();
@@ -55,8 +52,7 @@ const Home = () => {
   }
 
   return (
-    <div className="min-w-screen min-h-screen flex justify-between overflow-hidden relative">
-      <Sidebar />
+    <div className="w-full h-full flex flex-col justify-between overflow-hidden relative">
       {opened ? <VoiceAssistantNewUI setOpened={setOpened} /> : <HeroSection setOpened={setOpened} />}
     </div>
   );
@@ -85,13 +81,19 @@ export default function App() {
       <IpcAuthHandler />
       <Routes>
         <Route path="/auth" element={<Auth />} />
-        <Route path="/api/auth/callback" element={<AuthCallback />} />
-        <Route path="/" element={<Home />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/chat/:session_id" element={<MessageContainer />} />
+        </Route>
         <Route path="/settings" element={<Settings />}>
           <Route index element={<Navigate to="general" replace />} />
           <Route path="general" element={<GeneralSettings />} />
           <Route path="assistant" element={<AssistantSettings />} />
         </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <CustomToaster />
     </BrowserRouter>

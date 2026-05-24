@@ -10,7 +10,11 @@ interface UserState {
 }
 
 const initialState: UserState = {
-  user: null,
+  user: {
+    email: "bittujha9142@gmail.com",
+    full_name: "Baburao",
+    profile_pic: null
+  },
   loading: true,
 }
 
