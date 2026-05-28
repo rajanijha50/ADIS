@@ -1,11 +1,10 @@
 # auth_google.py
-from models.User import UserModel
 from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel
 import httpx
 
 from api.auth.auth_utils import create_jwt, set_auth_cookie
-from db.connect import get_connection, now
+from db.connect import now, UserModel
 
 router = APIRouter()
 

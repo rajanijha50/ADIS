@@ -1,4 +1,4 @@
-from db.mongodb import connect_to_db
+from db.connect import connect_to_db
 from datetime import datetime
 from pymongo import MongoClient
 
@@ -43,7 +43,6 @@ UserValidator = {
 db = connect_to_db()
 try:
     UserModel = db['users']
-    # UserModel.create_index("email", unique=True)
 except:
     UserModel = db.create_collection("users", validator=UserValidator)
 

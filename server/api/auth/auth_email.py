@@ -1,11 +1,9 @@
 # auth_email.py
-from models.User import UserModel
 from fastapi import APIRouter, HTTPException, Response, Request
 from pydantic import BaseModel
-
-from api.auth.auth_utils import create_jwt, set_auth_cookie, verify_jwt, get_token_from_cookie
-from db.connect import hash_password, now
 from bson import ObjectId
+from api.auth.auth_utils import create_jwt, set_auth_cookie, verify_jwt, get_token_from_cookie
+from db.connect import hash_password, now, UserModel
 
 router = APIRouter()
 
