@@ -23,37 +23,43 @@ KeyShortcuts = {
     'close_tab':'ctrl+w',
     'refresh':'f5',
     'print_screen':'print_screen',
-    'volume_up':'volume up',
-    'volume_down':'volume down',
-    'mute':'volume mute',
-    'play/pause':'play/pause media',
-    'next_track':'next track',
-    'previous_track':'previous track',
-    'increase_brightness':'brightness up',
-    'decrease_brightness':'brightness down',
+    'volume_up':'volume_up',
+    'volume_down':'volume_down',
+    'mute':'volume_mute',
+    'play_pause':'play/pause_media',
+    'next_track':'next_track',
+    'previous_track':'previous_track',
+    'increase_brightness':'brightness_up',
+    'decrease_brightness':'brightness_down',
     'home':'home',
     'end':'end',
-    'page_up':'page up',
-    'page_down':'page down',
+    'page_up':'page_up',
+    'page_down':'page_down',
     'insert':'insert',
     'delete':'delete',
     'escape':'esc',
-    'caps_lock':'caps lock',
-    'num_lock':'num lock',
-    'maximize': 'windows + up',
-    'minimize': 'windows + down'
+    'caps_lock':'caps_lock',
+    'num_lock':'num_lock',
+    'maximize': 'windows+up',
+    'minimize': 'windows+down'
 }
 
-def handle_click_shortcut(shortcut: str) -> bool:
-    if shortcut in KeyShortcuts:
-        hotkey = KeyShortcuts[shortcut]
+def handle_click_shortcut(shortcut_name: str) -> bool:
+    shortcut_name = shortcut_name.lower().strip()
+    
+    if shortcut_name in KeyShortcuts:
+        # Keyshortcuts in a dict of predefined shortcuts. where key is the name and value is the actual hotkey combination to trigger
+        hotkey = KeyShortcuts[shortcut_name]
         try:
             keyboard.press_and_release(hotkey)
             return True
         except Exception as e:
             print(f"Error executing shortcut '{hotkey}': {e}")
             return False
-            
-    print(f"Shortcut '{shortcut}' not found in KeyShortcuts dictionary.")
+    
+    print(f"Shortcut '{shortcut_name}' not found in KeyShortcuts dictionary.")
     return False
+
+
+
 

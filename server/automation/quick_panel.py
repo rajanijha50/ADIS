@@ -1,93 +1,52 @@
-from automation.click_shortcut import handle_click_shortcut
-import subprocess
-import others.toggle_bluetooth as bt
-import others.toggle_wifi as wifi
-import platform
+import webbrowser
+import urllib
+from tavily import TavilyClient
+from config.config import TAVILY_API_KEY
 
-
-def check_os():
-    os_type = platform.system()
-    return os_type
-def toggle_bluetooth():
-    subprocess.run(
-        ['powershell', '-ExecutionPolicy', 'Bypass', '-File', bt.bluetooth_path],
-        capture_output=True,
-        text=True
-    )
-
-    return True
-def toggle_wifi():
-    subprocess.run(
-        ['powershell', '-ExecutionPolicy', 'Bypass', '-File', wifi.wifi_path],
-        capture_output=True,
-        text=True
-    )
-
-    return True
-def check_battery():
-    result = subprocess.run(
-        ['powershell', '-command', '(Get-WmiObject Win32_Battery).EstimatedChargeRemaining'],
-        capture_output=True,
-        text=True
-    )
-
-    return result.stdout.strip() + '%'
-def toggle_notification_center():
-    handle_click_shortcut('windows+n')
-    return True
-    
-def change_brighness(brightness_level = 70):
-    try:
-        result = subprocess.run(
-            ['powershell', '-command', f'(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,{brightness_level})'],
-            capture_output=True,
-            text=True
-        )
-        return True
-    except Exception:
-        return False
-def change_volume(volume_level=50):
+def search_ai(query):
     """
-    Changes the system volume (0-100) using PowerShell and the .NET Core Audio API.
+    Searches for a query using Tavily AI and returns the response.
     """
-    volume_level = max(0, min(100, volume_level))
-    
-    # scalar_volume = volume_level / 100.0
-    
-    direct_ps_command = f"(Get-WmiObject -Query 'Select * from Win32_DesktopMonitor'); " \
-                        f"$w = New-Object -ComObject WScript.Shell; " \
-                        f"1..50 | % {{ $w.SendKeys([char]174) }}; " \
-                        f"1..{volume_level // 2} | % {{ $w.SendKeys([char]175) }}"
-
     try:
-        result = subprocess.run(
-            ['powershell', '-Command', direct_ps_command],
-            capture_output=True,
-            text=True
-        )
-        return True
-    except Exception:
-        return False
+        tavily_client = TavilyClient(api_key=TAVILY_API_KEY)
+        response = tavily_client.search(query)
+        return response['results']
+    except Exception as e:
+        return {'error': f'Error in AI Search: {str(e)}'}
+
+def search_google(query):
+    """
+    Searches for a query on Google and opens the search results in the default web browser.
+    """
+    try:
+        encoded_query = urllib.parse.quote(query)
+        url = f"https://www.google.com/search?q={encoded_query}"
+        webbrowser.open(url)
+        return 'Google search completed successfully.'
+    except Exception as e:
+        return f'Error in Google Search: {str(e)}'
 
 
-def handle_quick_panel(command: str, level: int = None):
-    if command == 'check_os':
-        return check_os()
-    elif command == "toggle_bluetooth":
-        return toggle_bluetooth()
-    elif command == "toggle_wifi":
-        return toggle_wifi()
-    elif command == "check_battery":
-        return check_battery()
-    elif command == "toggle_notification_center":
-        return toggle_notification_center()
-    elif command == "change_brighness" and level:
-        return change_brighness(level)
-    elif command == "change_volume" and level:
-        return change_volume(level)
+def search_youtube(query):
+    """
+    Searches for a query on YouTube and opens the search results in the default web browser.
+    """
+    try:
+        encoded_query = urllib.parse.quote(query)
+        url = f"https://www.youtube.com/results?search_query={encoded_query}"
+        webbrowser.open(url)
+        return 'YouTube search completed successfully.'
+    except Exception as e:
+        return f'Error in YouTube Search: {str(e)}'
+
+
+def handle_web_search(platform: str, query: str) -> bool | str | dict:
+    platform = platform.lower().strip()
+    if platform == 'ai':
+        return search_ai(query)
+    elif platform == 'google':
+        return search_google(query)
+    elif platform == 'youtube':
+        return search_youtube(query)
     else:
-        return False
-    
-
-
-# print(handle_quick_panel('check_os'))
+        return f'Invalid web search platform: {platform}'
