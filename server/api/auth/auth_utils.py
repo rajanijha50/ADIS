@@ -1,4 +1,3 @@
-# auth_utils.py
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from config.config import JWT_SECRET_KEY, JWT_ALGORITHM, JWT_EXPIRE_MINUTES
@@ -42,5 +41,13 @@ def delete_auth_cookie(response):
 
 
 def get_token_from_cookie(request):
-    """Extract the auth_token from the request cookies."""
-    return request.cookies.get("auth_token")
+    """Extract the auth_token from the request cookies or Authorization header."""
+    token = request.cookies.get("auth_token")
+    if token:
+        return token
+    
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        return auth_header.split(" ")[1]
+    
+    return None

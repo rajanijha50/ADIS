@@ -1,9 +1,10 @@
-# auth_email.py
 from fastapi import APIRouter, HTTPException, Response, Request
 from pydantic import BaseModel
 from bson import ObjectId
 from api.auth.auth_utils import create_jwt, set_auth_cookie, verify_jwt, get_token_from_cookie
-from db.connect import hash_password, now, UserModel
+from db.sqliteDB import create_user, get_connection
+from db.mongoDB import UserModel
+from db.utils import hash_password, now
 
 router = APIRouter()
 
@@ -57,7 +58,11 @@ def signup(body: EmailSignupRequest, response: Response):
     
     jwt_token = create_jwt(user_id=user_id, email=body.email)
     set_auth_cookie(response, jwt_token)
-    return {"message": "Signup successful"}
+    return {
+        "message": "Signup successful",
+        "user": {"email": body.email, "full_name": body.full_name, "profile_pic": None},
+        "token": jwt_token
+    }
 
 @router.post("/api/auth/email/login")
 def login(body: EmailLoginRequest, response: Response):
@@ -72,7 +77,11 @@ def login(body: EmailLoginRequest, response: Response):
         
     jwt_token = create_jwt(user_id=str(user['_id']), email=body.email)
     set_auth_cookie(response, jwt_token)
-    return {"message": "Login successful"}
+    return {
+        "message": "Login successful",
+        "user": {"email": user.get("email"), "full_name": user.get("name"), "profile_pic": user.get("profile_pic")},
+        "token": jwt_token
+    }
 
 @router.post("/api/auth/logout")
 def logout(response: Response):

@@ -1,12 +1,11 @@
-# auth_microsoft.py
 from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel
 import httpx
 import base64
-
-
 from api.auth.auth_utils import create_jwt, set_auth_cookie
-from db.connect import now, UserModel
+from db.sqliteDB import create_user, get_connection
+from db.mongoDB import UserModel
+from db.utils import now
 
 router = APIRouter()
 

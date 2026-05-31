@@ -26,7 +26,7 @@ export default function Auth() {
     if (!isLogin) body.full_name = fullName;
 
     try {
-      const res = await fetch(`http://localhost:8000${endpoint}`, {
+      const res = await fetch(`${import.meta.env.VITE_SERVER_URL}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -35,6 +35,10 @@ export default function Auth() {
       const data = await res.json();
 
       if (!res.ok) throw new Error(data.detail || "Authentication failed");
+
+      if (data.token) {
+        localStorage.setItem("auth_token", data.token);
+      }
 
       navigate("/");
     } catch (err: any) {
@@ -47,7 +51,7 @@ export default function Auth() {
   const handleGoogleSuccess = async (credentialResponse: any) => {
     console.log(credentialResponse);
     try {
-      const res = await fetch("http://localhost:8000/api/auth/google/login", {
+      const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/auth/google/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: credentialResponse.credential }),
@@ -75,7 +79,7 @@ export default function Auth() {
       const loginResponse = await instance.loginPopup({
         scopes: ["user.read", "openid", "profile", "email"],
       });
-      const res = await fetch("http://localhost:8000/api/auth/microsoft/login", {
+      const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/auth/microsoft/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ access_token: loginResponse.accessToken }),
@@ -106,19 +110,19 @@ export default function Auth() {
 
         {externalAuthSuccess ? (
           <div className="text-center py-8 space-y-6 relative z-10">
-            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-950/30 border border-green-500/40 text-green-400">
+            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-border-accent border border-border-card text-accent-primary">
               <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-2xl font-extrabold text-green-400">Successfully Authenticated!</h2>
+            <h2 className="text-2xl font-extrabold text-primary">Successfully Authenticated!</h2>
             <p className="text-sm text-secondary leading-relaxed">
               You have successfully logged in. You can now close this browser tab and return to the ADIS application.
             </p>
             <div className="pt-2">
               <button
                 onClick={() => window.close()}
-                className="px-6 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:opacity-90 text-white font-semibold rounded-xl transition-all shadow-md cursor-pointer animate-pulse"
+                className="px-6 py-2.5 bg-linear-to-r from-accent-primary to-accent-secondary hover:opacity-90 text-primary font-semibold rounded-xl transition-all shadow-md cursor-pointer animate-pulse"
               >
                 Close Tab
               </button>

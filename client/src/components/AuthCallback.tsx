@@ -9,11 +9,10 @@ export default function AuthCallback() {
     const token = searchParams.get("token");
 
     if (token) {
-      console.log("Got the token: ", token);
+      // console.log("Got the token: ", token);
       localStorage.setItem("auth_token", token);
-
       // Post token to /api/auth/set-token to set the HttpOnly cookie in the current session
-      fetch("http://localhost:8000/api/auth/set-token", {
+      fetch(`${import.meta.env.VITE_SERVER_URL}/api/auth/set-token`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token }),
@@ -33,8 +32,8 @@ export default function AuthCallback() {
   }, [searchParams, navigate]);
 
   return (
-    <div className="w-screen h-screen flex flex-col items-center justify-center bg-black text-white">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mb-4"></div>
+    <div className="w-screen h-screen flex flex-col items-center justify-center bg-app text-primary">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent-primary mb-4"></div>
       <p className="text-xl">Authenticating...</p>
     </div>
   );

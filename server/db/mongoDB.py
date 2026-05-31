@@ -1,25 +1,13 @@
-import hashlib
-from datetime import datetime, timedelta
-import certifi
+# user schema and user model for mongodb
+from datetime import datetime
 from pymongo import MongoClient
 from config.config import MONGODB_URI
 
 uri = MONGODB_URI
 
-# helper functions for mongodb
-def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
-
-
-def now(offset_minutes: int = 0) -> str:
-    return (datetime.now() + timedelta(minutes=offset_minutes)).strftime(
-        "%Y-%m-%d %H:%M:%S"
-    )
-
 def connect_to_db():
     return MongoClient(uri).adis_database
 
-# user schema and user model for mongodb
 UserValidator = {
     "$jsonSchema": {
         "bsonType": "object",
@@ -43,6 +31,10 @@ UserValidator = {
                 "bsonType": "string",
                 "description": "URL must be a string"
             },
+            "contact": {
+                "bsonType": "string",
+                "description": "Contact must be a string"
+            },
             "created_at": {
                 "bsonType": "date",
                 "description": "Date must be a date",
@@ -56,7 +48,6 @@ UserValidator = {
         }
     }
 }
-
 
 db = connect_to_db()
 try:

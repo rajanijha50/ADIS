@@ -13,6 +13,7 @@ import Settings from "./components/settings/Settings";
 import GeneralSettings from "./components/settings/GeneralSettings";
 import AssistantSettings from "./components/settings/AssistantSettings";
 import MainLayout from "./components/layout/MainLayout";
+import VoiceAssistantUI from "./components/AssistantUI";
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -23,8 +24,15 @@ const Home = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        const token = localStorage.getItem("auth_token");
+        const headers: HeadersInit = {};
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
         const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/auth/me`, {
           method: "GET",
+          headers: headers,
           credentials: "include",
         });
         if (res.ok) {
@@ -38,6 +46,7 @@ const Home = () => {
       } catch (err) {
         console.error("Auth check failed:", err);
         dispatch(clearUser());
+        navigate("/auth");
       }
     };
     checkAuth();
@@ -53,7 +62,7 @@ const Home = () => {
 
   return (
     <div className="w-full h-full flex flex-col justify-between overflow-hidden relative">
-      {opened ? <VoiceAssistantNewUI setOpened={setOpened} /> : <HeroSection setOpened={setOpened} />}
+      {opened ? <VoiceAssistantUI setOpened={setOpened} /> : <HeroSection setOpened={setOpened} />}
     </div>
   );
 };
@@ -64,8 +73,8 @@ const IpcAuthHandler = () => {
   useEffect(() => {
     if (typeof window !== "undefined" && window.ipcRenderer) {
       const handleAuthToken = (_event: any, token: string) => {
-        console.log("Received auth token via IPC:", token);
-        navigate(`/api/auth/callback?token=${token}`);
+        // console.log("Received auth token via IPC:", token);
+        navigate(`/auth/callback?token=${token}`);
       };
 
       window.ipcRenderer.on("auth-token-received", handleAuthToken);
