@@ -1,0 +1,243 @@
+utterance,intent
+take a screenshot,click_shortcut
+copy this text,click_shortcut
+paste that for me,click_shortcut
+maximize this window,click_shortcut
+close this tab,click_shortcut
+mute my device,click_shortcut
+minimize all the windows,click_shortcut
+undo that action,click_shortcut
+open the file explorer,click_shortcut
+switch the tab,click_shortcut
+open quick settings panel,click_shortcut
+lock my computer,click_shortcut
+secure my device,click_shortcut
+press ctrl c,click_shortcut
+hit ctrl plus v,click_shortcut
+use alt + tab,click_shortcut
+press numlock,click_shortcut
+go to end of the current page,click_shortcut
+minimize this window,click_shortcut
+close the current app,click_shortcut
+go to desktop,click_shortcut
+take a screenshot of the screen,click_shortcut
+open the start menu,click_shortcut
+lock the screen now,click_shortcut
+select all the text,click_shortcut
+hit windows key,click_shortcut
+switch to the previous window,click_shortcut
+undo the last change,click_shortcut
+redo that action,click_shortcut
+copy the selected text,click_shortcut
+hit caps lock,click_shortcut
+paste the copied content,click_shortcut
+escape from the current screen,click_shortcut
+maximize the current window,click_shortcut
+open file explorer with a shortcut,click_shortcut
+open task manager with hotkeys,click_shortcut
+set a timer for 5 minutes,control_app
+set an alarm for 7 am,control_app
+set alarm at 9:30 pm,control_app
+start a 30 minute timer,control_app
+set a 1 hour timer,control_app
+open notepad and write this down,control_app
+write hello world in notepad,control_app
+set a timer for 10 minutes,control_app
+start a 15 minute timer,control_app
+set an alarm for 6 am tomorrow,control_app
+write hello in notepad,control_app
+type this sentence in notepad,control_app
+open notepad and type a note,control_app
+set a timer for 45 seconds,control_app
+create an alarm for 8 15 am,control_app
+start a 2 hour timer,control_app
+open notepad and save the file,control_app
+write down the meeting notes,control_app
+open notepad and enter this text,control_app
+set a timer for 3 minutes,control_app
+create a 5 minute timer,control_app
+set an alarm for 7 30 am,control_app
+write down a shopping list in notepad,control_app
+open notepad and jot this down,control_app
+what is artificial intelligence,general_query
+how do i learn python,general_query
+i did not like your response can you give me a better answer,general_query
+tell me a joke,general_query
+what's the capital of france,general_query
+how do neural networks work,general_query
+explain quantum computing in a detailed way,general_query
+what is the meaning of life,general_query
+tell me something about myself,general_query
+how do i improve my programming skills,general_query
+what is machine learning,general_query
+what is the best way to use ai effectively to improve productivity,general_query
+how does a computer work,general_query
+explain the difference between ai and machine learning,general_query
+what is the capital of japan,general_query
+i want to learn operating system subjects,general_query
+i want to fix a bug in my code how should i approach it,general_query
+what is your opinion on the world war two,general_query
+how do i get better at coding,general_query
+for which upcomming movie you are excited most about this year,general_query
+by looking at the current situation do you think ai will take over the world,general_query
+what are neural networks,general_query
+how can i cover my backlogs of this semester,general_query
+tell me about the history of the internet,general_query
+explain recursion in simple terms,general_query
+why is the sky blue,general_query
+in which field does ai is currently evolving most,general_query
+what is the meaning of democracy,general_query
+how do i improve my memory,general_query
+are you aware of term hallucination in ai what is it,general_query
+give me a detailed roadmap to learn data science,general_query
+what is the fastest land animal,general_query
+give me a random joke,general_query
+how do search engines work,general_query
+what is cloud computing,general_query
+explain the internet,general_query
+what time is it,get_current
+tell me the time,get_current
+who is the richest person in world currently,get_current
+what's the date today,get_current
+can you get the current weather,get_current
+check the weather,get_current
+what's my IP address,get_current
+get the current date,get_current
+what time and date is it,get_current
+what is the current time,get_current
+show me today's date,get_current
+what's the weather right now,get_current
+what is the current weather outside,get_current
+tell me today's date and time,get_current
+what is my public ip address,get_current
+can you tell me the time now,get_current
+what date is it today,get_current
+give me the current time and date,get_current
+check the weather for me,get_current
+what's the time in my area,get_current
+what is the temperature right now,get_current
+show today's weather forecast,get_current
+what is my ip,get_current
+what date is today,get_current
+tell me the current date,get_current
+open settings,open_app
+open notepad for me,open_app
+can you launch visual studio code,open_app
+start discord,open_app
+open chrome,open_app
+launch minecraft,open_app
+start the file explorer,open_app
+open blender please,open_app
+open calculator app,open_app
+launch chrome browser,open_app
+start spotify app,open_app
+open terminal,open_app
+please open whatsapp,open_app
+can you launch code editor,open_app
+start microsoft edge,open_app
+open word,open_app
+open excel for me,open_app
+launch paint in my device,open_app
+open the downloads folder,open_app
+could you start telegram app,open_app
+open the camera app,open_app
+please start slack,open_app
+launch settings app,open_app
+open mail app,open_app
+open youtube.com,open_site
+can you open google.com,open_site
+go to discord.com,open_site
+open reddit.com website,open_site
+go to twitter.com,open_site
+open stackoverflow.com,open_site
+go to instagram.com,open_site
+could you open netflix.com,open_site
+please open open github.com for me,open_site
+go to google.com,open_site
+launch youtube.com,open_site
+open reddit.com,open_site
+could you open stackoverflow.com,open_site
+visit wikipedia.org,open_site
+open chatgpt.com,open_site
+go to netflix.com,open_site
+open amazon.in,open_site
+launch linkedin.com,open_site
+open gmail.com,open_site
+open the website github.com,open_site
+visit twitter.com,open_site
+can you go to news.google.com,open_site
+open instagram.com,open_site
+please open docs.google.com,open_site
+navigate to outlook.com,open_site
+open openai.com,open_site
+toggle bluetooth,quick_panel
+turn on wifi,quick_panel
+check my battery,quick_panel
+what is power level,quick_panel
+tell me the battery status,quick_panel
+what is battery level,quick_panel
+toggle notification center,quick_panel
+set brightness to 75 percent,quick_panel
+how much power is left,quick_panel
+increase brightness to 90,quick_panel
+tell me the current battery level,quick_panel
+change volume to 50,quick_panel
+tell me the power status of my device,quick_panel
+check the operating system,quick_panel
+turn on bluetooth,quick_panel
+turn off wifi,quick_panel
+what is the battery level of my device,quick_panel
+set brightness to 50 percent,quick_panel
+decrease brightness to 30%,quick_panel
+turn brightness up to 80,quick_panel
+lower the volume to 20,quick_panel
+mute the sound,quick_panel
+what is the os version,quick_panel
+tell me the current power level,quick_panel
+which operating system am i using,quick_panel
+toggle airplane mode,quick_panel
+turn off dark mode,quick_panel
+decrease volume to 40,quick_panel
+decrease brightness to 20 percent,quick_panel
+show the notification center,quick_panel
+turn on hotspot,quick_panel
+what is the operating system version,quick_panel
+check the system battery,quick_panel
+change volume to 70 percent,quick_panel
+set volume to 30,quick_panel
+set brightness to 100 percent,quick_panel
+increase volume to 60,quick_panel
+increase brightness to 100,quick_panel
+toggle night light,quick_panel
+increase screen brightness,quick_panel
+tell me the os version of this device,quick_panel
+search for hello world on google,web_search
+google what is machine learning,web_search
+search python tutorial on youtube,web_search
+youtube search for cooking tutorial,web_search
+search on ai for climate change,web_search
+find javascript best practices online,web_search
+search for dogs on youtube,web_search
+google covid vaccination info,web_search
+perform an ai search for machine learning basics,web_search
+search youtube for python tutorials,web_search
+look up best laptop for programming on google,web_search
+find news about climate change online,web_search
+google recipes for pasta,web_search
+search who is the richest person in world currently,web_search
+search the web for latest ai news,web_search
+search on youtube for guitar lessons,web_search
+find tutorials for javascript on google,web_search
+search on ai for current net worth of elon musk,web_search
+google the current war situation in ukraine,web_search
+google how to learn data science,web_search
+look up the current stock price of apple,web_search
+search youtube for workout videos,web_search
+google the current results of american elections,web_search
+look up football scores on google,web_search
+perform an ai search about the job role which is most popular in industry currently,web_search
+search the internet for space news,web_search
+find python documentation online,web_search
+search for netflix shows are trending right now,web_search
+search google maps for restaurants nearby,web_search
+search the web for netflix recommendations,web_search

@@ -7,6 +7,7 @@ from db.sqliteDB import create_user, get_connection
 from db.mongoDB import UserModel
 from db.utils import now
 
+
 router = APIRouter()
 
 USER_INFO_URL = "https://graph.microsoft.com/v1.0/me"
@@ -19,14 +20,14 @@ class MicrosoftTokenRequest(BaseModel):
 async def microsoft_login(body: MicrosoftTokenRequest, response: Response):
     access_token = body.access_token
 
-    # ── Step B: Use the access token to fetch the user's profile ──
+    # validate the access token and fetch user profile from Microsoft Graph API
     async with httpx.AsyncClient() as client:
         profile_response = await client.get(
             USER_INFO_URL,
             headers={"Authorization": f"Bearer {access_token}"}
         )
         
-        # ── Step C: Attempt to fetch the user's profile picture ──
+        # attempt to fetch profile photo, but don't fail if it doesn't work (some accounts may not have a photo)
         photo_response = await client.get(
             PHOTO_URL,
             headers={"Authorization": f"Bearer {access_token}"}
@@ -52,10 +53,10 @@ async def microsoft_login(body: MicrosoftTokenRequest, response: Response):
     if not email:
         raise HTTPException(status_code=400, detail="Could not retrieve email from Microsoft")
 
-    # DB CONNECTION
     try:
         user = UserModel.find_one({"email": email})
         if not user:
+            # new user, insert into mongoDB
             result = UserModel.insert_one({
                 "name": full_name,
                 "email": email,
@@ -64,6 +65,10 @@ async def microsoft_login(body: MicrosoftTokenRequest, response: Response):
                 "updated_at": now()
             })
             user_id = str(result.inserted_id)
+
+            # add into sqliteDB
+            conn = get_connection()
+            create_user(conn, full_name, email)
         else:
             user_id = str(user["_id"])
     except Exception as e:

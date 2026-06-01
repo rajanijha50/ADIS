@@ -4,7 +4,9 @@
 # virtual environment
 .venv
 .adis
-.voice
+*.db
+/voice/models/faster-whisper
+/voice/models/openai-whisper
 
 # python cache
 __pycache__

@@ -6,6 +6,7 @@ from db.sqliteDB import create_user, get_connection
 from db.mongoDB import UserModel
 from db.utils import hash_password, now
 
+
 router = APIRouter()
 
 @router.get("/api/auth/me")
@@ -46,6 +47,7 @@ def signup(body: EmailSignupRequest, response: Response):
         
     pwd_hash = hash_password(body.password)
     
+    # add into mongoDB
     result = UserModel.insert_one({
         "name": body.full_name,
         "email": body.email,
@@ -53,6 +55,10 @@ def signup(body: EmailSignupRequest, response: Response):
         "created_at": now(),
         "updated_at": now()
     })
+
+    # add into sqliteDB
+    conn = get_connection()
+    create_user(conn, body.full_name, body.email)
     
     user_id = str(result.inserted_id)
     

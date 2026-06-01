@@ -118,15 +118,19 @@ def write_on_notepad(text: str) -> bool:
         
 def handle_control_app(command: str, input_param: str) -> bool:
     command = command.lower().strip()
-    
-    if 'timer' in command:
-        return set_timer(input_param)
-    elif 'alarm' in command:
-        return set_alarm(input_param)
-    elif 'notepad' in command:
-        return write_on_notepad(input_param)
-    else:
-        print(f"Unknown control command: '{command}'")
+    if not command:
+        return "Error: No command provided."
+    try:
+        if 'timer' in command:
+            return set_timer(input_param)
+        elif 'alarm' in command:
+            return set_alarm(input_param)
+        elif 'notepad' in command:
+            return write_on_notepad(input_param)
+        else:
+            return {'error': f'Invalid control command: {command}'}
+    except Exception as e:
+        return {'error': f'Error executing control command: {str(e)}'}
         return False
 
 # print(write_on_notepad('hello this is shubham bro'))

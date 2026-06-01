@@ -5,7 +5,7 @@ from db.utils import now
 
 # db path
 current_dir = Path(__file__).parent
-DB_PATH = current_dir / "adis.db"
+DB_PATH = current_dir / "adis_sqlite.db"
 
 
 # connection helper
@@ -248,6 +248,14 @@ def get_session(conn: sqlite3.Connection, session_id: int) -> sqlite3.Row | None
         "SELECT * FROM sessions WHERE session_id = ?", (session_id,)
     ).fetchone()
 
+def update_session_title(conn: sqlite3.Connection, session_id: int, title: str) -> None:
+    """Update the title of a session."""
+    title = title.replace('"','').replace("'",'').replace("-",'').replace('*','')
+    conn.execute(
+        "UPDATE sessions SET title = ? WHERE session_id = ?", (title, session_id)
+    )
+    conn.commit()
+
 def update_session_summary(conn: sqlite3.Connection, session_id: int, summary: str) -> None:
     """Persist the rolling summary after a summarisation cycle."""
     conn.execute(
@@ -427,8 +435,3 @@ def seed_dev_data():
 
 
 
-# if __name__ == "__main__":
-#     seed_dev_data()
-# #     conn = get_connection()
-# #     print(get_recent_messages(conn, 1, 10))
-# #     conn.close()

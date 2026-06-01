@@ -46,7 +46,8 @@ KeyShortcuts = {
 
 def handle_click_shortcut(shortcut_name: str) -> bool:
     shortcut_name = shortcut_name.lower().strip()
-    
+    if not shortcut_name:
+        return "Error: No shortcut name provided."
     if shortcut_name in KeyShortcuts:
         # Keyshortcuts in a dict of predefined shortcuts. where key is the name and value is the actual hotkey combination to trigger
         hotkey = KeyShortcuts[shortcut_name]
@@ -56,8 +57,6 @@ def handle_click_shortcut(shortcut_name: str) -> bool:
         except Exception as e:
             print(f"Error executing shortcut '{hotkey}': {e}")
             return False
-    
-    print(f"Shortcut '{shortcut_name}' not found in KeyShortcuts dictionary.")
     return False
 
 

@@ -6,6 +6,7 @@ from db.sqliteDB import get_connection, create_user
 from db.mongoDB import UserModel
 from db.utils import now
 
+
 router = APIRouter()
 
 class GoogleTokenRequest(BaseModel):
@@ -15,7 +16,7 @@ class GoogleTokenRequest(BaseModel):
 async def google_login(body: GoogleTokenRequest, response: Response):
     token = body.token
     
-    # Verify token with Google
+    # verify token with Google
     async with httpx.AsyncClient() as client:
         response_google = await client.get(f"https://oauth2.googleapis.com/tokeninfo?id_token={token}")
         
@@ -33,7 +34,7 @@ async def google_login(body: GoogleTokenRequest, response: Response):
     if not email:
         raise HTTPException(status_code=400, detail="Could not retrieve email from Google")
         
-    # DB CONNECTION
+    # add or update user in MongoDB
     try:
         user = UserModel.find_one({"email": email})
         if not user:
@@ -45,6 +46,10 @@ async def google_login(body: GoogleTokenRequest, response: Response):
                 "updated_at": now()
             })
             user_id = str(result.inserted_id)
+
+            # add into sqliteDB
+            conn = get_connection()
+            create_user(conn, full_name, email)
         else:
             user_id = str(user["_id"])
     except Exception as e:

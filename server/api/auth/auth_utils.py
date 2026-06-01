@@ -6,7 +6,7 @@ from config.config import JWT_SECRET_KEY, JWT_ALGORITHM, JWT_EXPIRE_MINUTES
 def create_jwt(user_id: int, email: str) -> str:
     """Create a signed JWT for a user."""
     payload = {
-        "sub": str(user_id),   # subject — who this token belongs to
+        "sub": str(user_id),
         "email": email,
         "exp": datetime.utcnow() + timedelta(minutes=JWT_EXPIRE_MINUTES)
     }
@@ -31,7 +31,7 @@ def set_auth_cookie(response, token: str):
         max_age=JWT_EXPIRE_MINUTES * 60,
         expires=JWT_EXPIRE_MINUTES * 60,
         samesite="lax",
-        secure=False,  # Set to True in production with HTTPS
+        secure=False,
     )
 
 

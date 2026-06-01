@@ -73,6 +73,9 @@ def search_youtube(query):
 
 def handle_web_search(platform: str, query: str) -> bool | str | dict:
     platform = platform.lower().strip()
+    query = query.lower().strip()
+    if not platform or not query:
+        return "Error: Platform and Query must be provided"
     if platform == 'ai' or platform in ['ai','chatgpt','chatbot','gemini','claude']:
         return search_ai(query)
     elif platform == 'google':
