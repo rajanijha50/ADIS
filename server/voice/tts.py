@@ -1,3 +1,4 @@
+from pathlib import Path
 import os
 import warnings
 import io
@@ -14,6 +15,7 @@ import pygame
 
 # Characters to avoid/remove from input text (markdown special characters)
 CHARS_TO_AVOID = ['-', '*', '#', '`', '_', '[', ']', '(', ')', '{', '}', '\\', '|', '~', '^']
+VOICE_OPTIONS = ['hi-IN-MadhurNeural','hi-IN-SwaraNeural','en-IN-NeerjaNeural','en-IN-PrabhatNeural']
 
 def clean_text(text: str) -> str:
     """Remove markdown and special characters from text while preserving readability."""
@@ -23,25 +25,21 @@ def clean_text(text: str) -> str:
     text = ' '.join(text.split())
     return text
 
-async def _generate_audio(text: str, output_file: str, voice: str = "en-GB-RyanNeural"):
-    """Calls the Edge-TTS API to generate the hyper-realistic voice."""
-    communicate = edge_tts.Communicate(text, voice)
-    await communicate.save(output_file)
-
-def speak_to_user(text: str, voice: str = "en-GB-RyanNeural"):
+# NOTE VOICE OUTPUT
+async def speak_to_user(text: str, voice: str = "en-GB-RyanNeural", rate: str = "+20%", pitch: str = "+0Hz"):
     """generates AI audio and plays it instantly."""
-    # Clean the text from markdown and special characters
+    # clean text first
     text = clean_text(text)
-    print(f"Assistant: {text}")
     
-    audio_file = "response.mp3"
-    
-    # generate the audio file asynchronously
-    asyncio.run(_generate_audio(text, audio_file, voice))
+    # generate audio file
+    current_dir = Path(__file__).parent
+    audio_file = current_dir / "response.mp3"
+    communicate = edge_tts.Communicate(text, voice, rate=rate, pitch=pitch)
+    await communicate.save(str(audio_file))
     
     # play the audio file
     pygame.mixer.init()
-    pygame.mixer.music.load(audio_file)
+    pygame.mixer.music.load(str(audio_file))
     pygame.mixer.music.play()
     
     # wait for the audio to finish playing
@@ -55,9 +53,10 @@ def speak_to_user(text: str, voice: str = "en-GB-RyanNeural"):
         os.remove(audio_file)
 
 
-async def _generate_audio_bytes(text: str, voice: str) -> bytes:
+# NOTE AUDIO BYTES
+async def _generate_audio_bytes(text: str, voice, rate, pitch) -> bytes:
     """Generates audio and returns raw MP3 bytes (no file written)."""
-    communicate = edge_tts.Communicate(text, voice)
+    communicate = edge_tts.Communicate(text, voice, rate=rate, pitch=pitch)
     buffer = io.BytesIO()
     async for chunk in communicate.stream():
         if chunk["type"] == "audio":
@@ -65,16 +64,23 @@ async def _generate_audio_bytes(text: str, voice: str) -> bytes:
     buffer.seek(0)
     return buffer.read()
 
-async def synthesize_to_bytes(text: str, voice: str = "en-GB-RyanNeural") -> bytes:
+async def synthesize_to_bytes(text: str, voice: str = "en-GB-RyanNeural", rate: str = "+20%", pitch: str = "+0Hz") -> bytes:
     """Returns MP3 audio bytes for the given text. No playback, no file."""
     # Clean the text from markdown and special characters
     text = clean_text(text)
-    return await _generate_audio_bytes(text, voice)
+    communicate = edge_tts.Communicate(text, voice, rate=rate, pitch=pitch)
+    buffer = io.BytesIO()
+    async for chunk in communicate.stream():
+        if chunk["type"] == "audio":
+            buffer.write(chunk["data"])
+    buffer.seek(0)
+    return buffer.read()
+    # return await _generate_audio_bytes(text, voice)
 
 # text = """To develop a comprehensive understanding of data structures and algorithms, consider the following step-by-step plan:
 # * Begin by reviewing the fundamentals of programming, including data types, variables, control structures, functions, and object-oriented programming concepts, to ensure a solid foundation for learning data structures and algorithms.
 # * Familiarize yourself with basic data structures such as arrays, linked lists, stacks, and queues, and practice implementing them in your preferred programming language."""
-# speak_to_user(text)
+# asyncio.run(speak_to_user(text, VOICE_OPTIONS[2]))
 
 # text = "i have uploaded all the files to the drive as you said. and its currently 8:50 pm. taking about the weather, its 36°C and cloudy. "
 # audio_b64 = synthesize_to_bytes(text)

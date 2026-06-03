@@ -166,16 +166,16 @@ def handle_llm_query(
     try:
         # step 1: Load user preferences ───
         prefs = get_user_preferences(conn, email)
-        print('\n\n✅ user pref from db: ', prefs)
+        print('\n\n[OK] user pref from db: ', prefs)
 
 
         # step 2: Build system prompt (Layer 1 + Layer 2) ──
         system_prompt = _build_system_prompt(conn, email, session_id, prefs)
-        print('\n\n✅ system prompt: ', system_prompt)
+        print('\n\n[OK] system prompt: ', system_prompt)
 
         # step 3: Build message with history (Layer 3 + current) ──
         full_message = _build_message_with_history(conn, session_id, user_input)
-        print('\n\n✅ full message: ', full_message)
+        print('\n\n[OK] full message: ', full_message)
 
         # step 4: Call the LLM ─────────────
         response = handle_message_chatbot(
@@ -188,7 +188,7 @@ def handle_llm_query(
             temperature=prefs["temperature"],
             system_prompt=system_prompt,
         )
-        print('\n\n✅ final response in llm_handler: ', response)
+        print('\n\n[OK] final response in llm_handler: ', response)
 
         # step 5: Persist the new turn ─────
         add_message(
@@ -202,7 +202,7 @@ def handle_llm_query(
             conn, session_id,
             role="assistant",
             content=response,
-            input_type="text",      # assistant response is always text
+            input_type=input_type,
         )
 
         # step 6: Summarise if needed ──────

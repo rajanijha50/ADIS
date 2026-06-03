@@ -4,9 +4,9 @@ import spacy
 from typing import Optional
 
 
-# Intent-framing words — stripped FIRST before any entity extraction
+# intent-framing words — stripped FIRST before any entity extraction
 FRAMING_PATTERNS = {
-    "web_search":     r"\b(it\s?for\s?me|perform\s?a|perform\s?an|search\s?for|search\s?about|about|search\s?on|find\s?me|show\s?me|for\s?me|look\s?up|search|find|browse|look|it|on)\b",
+    "web_search":     r"\b(it\s?for\s?me|perform\s?a|perform\s?an|search\s?for|search\s?about|about|search\s?on|find\s?me|show\s?me|for\s?me|look\s?up|search|find|the|browse|look|it|on)\b",
     "open_app":       r"\b(open|launch|start|run|execute|app|application|bring\s?up|load|for\s?me)\b",
     "open_site":      r"\b(open|launch|go\s?to|visit|navigate\s?to|take\s?me\s?to|browse\s?to|load)\b",
     "control_app":    r"\b(set\s?a?|start\s?a?|create\s?a?|new|please|a|to)\b",
@@ -15,7 +15,7 @@ FRAMING_PATTERNS = {
     "quick_panel":    r"\b(show|tell\s?me|check|get|what\s?is|what's|set|change|increase|decrease|toggle|turn\s?on|turn\s?off)\b",
 }
 
-# Site name → URL  (handle_open_site expects URL form)
+# site name → url  (handle_open_site expects URL form)
 SITE_URL_MAP = {
     "youtube":        "youtube.com",
     "google":         "google.com",
@@ -36,7 +36,7 @@ SITE_URL_MAP = {
     "chatgpt":        "chatgpt.com",
 }
 
-# Platform patterns — handle_web_search accepts: 'ai' | 'google' | 'youtube'
+# platform patterns — handle_web_search accepts: 'ai' | 'google' | 'youtube'
 PLATFORM_PATTERNS = {
     "youtube": r"\b(youtube)\b",
     "google":  r"\b(google)\b",
@@ -58,13 +58,33 @@ QUICK_PANEL_MAP = {
 CLICK_SHORTCUT_MAP = {
     r"\b(settings|setting)\b":                             "settings",
     r"\b(notification|notify|notification\s?center)\b":   "notification_center",
-    r"\b(reload|refresh)\b":                               "reload",
+    r"\b(quick\s?panel|action\s?center)\b":              "quick_panel",
+    r"\b(reload|reload\s?page)\b":                        "reload",
+    r"\b(refresh|refresh\s?page)\b":                       "refresh",
     r"\b(switch|alt\s?tab|switch\s?window)\b":            "switch",
     r"\b(search\s?bar|search|windows\s?search)\b":        "search",
     r"\b(file\s?explorer|explorer|files)\b":              "file_explorer",
     r"\b(desktop|show\s?desktop|minimize\s?all)\b":       "desktop",
     r"\b(minimize|minimize\s?window|minimize\s?application|minimize\s?the\s?screen|minimize\s?the\s?window)\b":       "minimize",
     r"\b(maximize|maximize\s?window|maximize\s?application|maximize\s?the\s?screen|maximize\s?the\s?window)\b":       "maximize",
+    r"\b(copy|copy\s?text|copy\s?to\s?clipboard)\b":   "copy",
+    r"\b(paste|paste\s?text|paste\s?from\s?clipboard)\b": "paste",
+    r"\b(cut|cut\s?text)\b":                              "cut",
+    r"\b(undo|undo\s?action|go\s?back)\b":               "undo",
+    r"\b(redo|redo\s?action)\b":                         "redo",
+    r"\b(select\s?all|select\s?everything)\b":           "select_all",
+    r"\b(new\s?tab|open\s?tab|add\s?tab)\b":            "new_tab",
+    r"\b(close\s?tab|close\s?the\s?tab)\b":            "close_tab",
+    r"\b(print\s?screen)\b":                             "print_screen",
+    r"\b(home)\b":                                       "home",
+    r"\b(end)\b":                                        "end",
+    r"\b(page\s?up)\b":                                 "page_up",
+    r"\b(page\s?down)\b":                               "page_down",
+    r"\b(insert)\b":                                     "insert",
+    r"\b(delete|del)\b":                                 "delete",
+    r"\b(escape|esc)\b":                                 "escape",
+    r"\b(caps\s?lock|capslock)\b":                      "caps_lock",
+    r"\b(num\s?lock|numlock)\b":                        "num_lock",
     r"\b(mute|unmute|mute\s?volume|mute\s?my\s?device)\b":       "mute",
     r"\b(run|run\s?command|run\s?dialog)\b":              "run",
     r"\b(lock|lock\s?screen|lock\s?pc|lock\s?computer|lock\s?device)\b":                "lock",
@@ -104,7 +124,7 @@ def _get_nlp():
 
 
 
-# Private helpers
+# helper functions
 def _strip_framing(text: str, intent: str) -> str:
     """Strip intent-framing words, return cleaned remainder."""
     pattern = FRAMING_PATTERNS.get(intent)
@@ -195,7 +215,7 @@ def _extract_site_url(text: str) -> str:
     Already-URL text passes through unchanged.
     Unknown names get '.com' appended as fallback.
     """
-    # Already looks like a URL (has a dot followed by a TLD)
+    # already looks like a URL (has a dot followed by a TLD)
     if re.search(r"\.\w{2,}", text):
         return text.strip()
 
@@ -204,39 +224,13 @@ def _extract_site_url(text: str) -> str:
         if name in text_lower:
             return url
 
-    # Fallback: treat as .com domain
+    # fallback: treat as .com domain
     clean = re.sub(r"\s+", "", text_lower)
     return clean + ".com"
 
 
-# Main function
+# main function
 def extract_entities(intent: str, text: str) -> dict:
-    """
-    Extract entities for the given intent and return a dict ready to
-    unpack directly into the corresponding handler call.
-
-    Args:
-        intent : classified intent string from intent_classifier
-        text   : raw user input (post-STT text)
-
-    Returns:
-        {
-            "intent"  : str,
-            "entities": dict,    # unpack directly → handler(**entities)
-            "success" : bool,
-            "error"   : str | None
-        }
-
-    Handler mapping:
-        web_search     → handle_web_search(platform, query)
-        open_app       → handle_open_app(app_name)
-        open_site      → handle_open_site(site_name)
-        get_current    → handle_get_current(command)
-        control_app    → handle_control_app(command, input_param)
-        click_shortcut → handle_click_shortcut(shortcut_name)
-        quick_panel    → handle_quick_panel(command, level=None)
-        general_query  → passthrough {query}
-    """
     result = {"intent": intent, "entities": {}, "success": True, "error": None}
 
     try:

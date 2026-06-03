@@ -1,4 +1,4 @@
-# ____FASTAPI MAIN ENTRY POINT____
+# ____THE MAIN ENTRY POINT____
 
 from config.config import CLIENT_URL
 from fastapi import FastAPI
@@ -33,5 +33,5 @@ app.add_middleware(
 )
 
 @app.get("/")
-def homepage():
-    return {"message": "you are on home page!"}
+def test():
+    return {"message": "ADIS - WORKING!"}

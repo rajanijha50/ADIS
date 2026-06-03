@@ -53,7 +53,7 @@ def search_google(query):
         encoded_query = urllib.parse.quote(query)
         url = f"https://www.google.com/search?q={encoded_query}"
         webbrowser.open(url)
-        return 'Google search completed successfully.'
+        return True
     except Exception as e:
         return f'Error in Google Search: {str(e)}'
 
@@ -66,7 +66,7 @@ def search_youtube(query):
         encoded_query = urllib.parse.quote(query)
         url = f"https://www.youtube.com/results?search_query={encoded_query}"
         webbrowser.open(url)
-        return 'YouTube search completed successfully.'
+        return True
     except Exception as e:
         return f'Error in YouTube Search: {str(e)}'
 

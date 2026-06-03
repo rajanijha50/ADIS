@@ -26,7 +26,7 @@ def _parse_duration(text: str) -> int:
         if m:
             total += int(m.group(1)) * multiplier
 
-    print(total)
+    # print(total)
     return total
 
 

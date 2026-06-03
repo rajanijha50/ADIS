@@ -50,11 +50,11 @@ def get_current_weather():
     def format_weather(data: dict) -> dict:
         """Format weather API response for text-to-speech output."""
         try:
-            return {
+            return str({
                 "condition": data["weatherCondition"]["description"]["text"],
                 "temperature": f"{data['temperature']['degrees']}°{data['temperature']['unit'][0]}",
                 "humidity": f"{data['relativeHumidity']}%",
-            }
+            })
         except Exception as e:
             return {"error": f"Failed to format weather data: {str(e)}"}
     try:
