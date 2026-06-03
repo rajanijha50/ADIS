@@ -9,7 +9,7 @@ interface MessageFieldProps {
 
 type ReactNode = string | React.ReactNode | ReactNode[];
 
-const formatMessage = (message: string): ReactNode[] => {
+export const formatMessage = (message: string): ReactNode[] => {
   const lines = message?.split('\n');
   const elements: ReactNode[] = [];
 

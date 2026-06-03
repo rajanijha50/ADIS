@@ -1,71 +1,14 @@
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { setUser, clearUser } from "./features/user/userSlice";
-import { RootState } from "./app/store";
+import { useEffect } from "react";
 import { CustomToaster } from "./components/SendNotification";
 import Auth from "./components/Auth";
 import AuthCallback from "./components/AuthCallback";
 import HeroSection from "./components/HeroSection";
 import MessageContainer from "./components/MessageContainer";
-import VoiceAssistantNewUI from "./components/AssistantNewUI";
 import Settings from "./components/settings/Settings";
 import GeneralSettings from "./components/settings/GeneralSettings";
 import AssistantSettings from "./components/settings/AssistantSettings";
 import MainLayout from "./components/layout/MainLayout";
-import VoiceAssistantUI from "./components/AssistantUI";
-
-const Home = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const { loading } = useSelector((state: RootState) => state.user);
-  const [opened, setOpened] = useState(false);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const token = localStorage.getItem("auth_token");
-        const headers: HeadersInit = {};
-        if (token) {
-          headers["Authorization"] = `Bearer ${token}`;
-        }
-
-        const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/auth/me`, {
-          method: "GET",
-          headers: headers,
-          credentials: "include",
-        });
-        if (res.ok) {
-          const data = await res.json();
-          dispatch(setUser(data));
-        } else {
-          console.log("not logged in: ", res);
-          dispatch(clearUser());
-          navigate("/auth");
-        }
-      } catch (err) {
-        console.error("Auth check failed:", err);
-        dispatch(clearUser());
-        navigate("/auth");
-      }
-    };
-    checkAuth();
-  }, [dispatch, navigate]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-app">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent-primary"></div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="w-full h-full flex flex-col justify-between overflow-hidden relative">
-      {opened ? <VoiceAssistantUI setOpened={setOpened} /> : <HeroSection setOpened={setOpened} />}
-    </div>
-  );
-};
 
 const IpcAuthHandler = () => {
   const navigate = useNavigate();
@@ -93,7 +36,7 @@ export default function App() {
         <Route path="/auth/callback" element={<AuthCallback />} />
 
         <Route element={<MainLayout />}>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<HeroSection />} />
           <Route path="/chat/:session_id" element={<MessageContainer />} />
         </Route>
         <Route path="/settings" element={<Settings />}>

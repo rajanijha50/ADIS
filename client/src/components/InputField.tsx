@@ -4,14 +4,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { setMessage, clearMessage } from "../features/message/messageSlice";
 import { RootState } from "../app/store";
 import { useNavigate, useLocation } from "react-router-dom";
+import { setVoiceUiOpen } from "../features/assistant/assistantSlice";
 
 interface InputFieldProps {
-  setOpened: (opened: boolean) => void;
   session_id: string;
 }
 
 const InputField = ({
-  setOpened,
   session_id
 }: InputFieldProps) => {
 
@@ -44,7 +43,7 @@ const InputField = ({
 
   const getChatResponse = useCallback(async (value: string, currentSessionId: string) => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/text/chat_completion`, {
+      const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/text/completion`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -53,7 +52,7 @@ const InputField = ({
         body: JSON.stringify({
           email: user?.email!,
           session: parseInt(currentSessionId),
-          message: value,
+          query: value,
         }),
       });
 
@@ -69,7 +68,7 @@ const InputField = ({
 
   const createNewSession = useCallback(async (userEmail: string, message: string) => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/text/create_session`, {
+      const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/session/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -77,7 +76,7 @@ const InputField = ({
         credentials: "include",
         body: JSON.stringify({
           email: userEmail,
-          message: message,
+          // message: message,
         }),
       });
 
@@ -223,7 +222,7 @@ const InputField = ({
               (e.currentTarget.style.backgroundColor = "var(--color-bg-mic)")
             }
           >
-            <Mic onClick={() => setOpened(true)} size={20} strokeWidth={2} />
+            <Mic onClick={() => dispatch(setVoiceUiOpen(true))} size={20} strokeWidth={2} />
           </button>
         )}
       </div>

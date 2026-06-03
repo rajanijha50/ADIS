@@ -14,15 +14,12 @@ const MessageContainer = () => {
 
   async function getChatHistory(){
     try {
-      const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/text/get_messages`, {
-        method: "POST",
+      const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/session/${session_id}/messages`, {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${localStorage.getItem("token")}`
         },
-        body: JSON.stringify({
-          session_id
-        })
       })
       const data = await res.json();
       // console.log(data.data)
@@ -63,7 +60,7 @@ const MessageContainer = () => {
         <div ref={endRef} />
       </section>
       <section className="w-full flex justify-center border-0 border-red-500">
-        <InputField session_id={session_id!} setOpened={() => {}} />
+        <InputField session_id={session_id!} />
       </section>
     </div>
   );

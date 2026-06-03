@@ -11,14 +11,15 @@ import {
   BrainCircuit,
   Type,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../app/store";
 import { SendNotification } from "../SendNotification";
 
 export default function AssistantSettings() {
   const { name: assistantName } = useSelector((state: RootState) => state.assistant);
-  const email = useSelector((state: RootState) => state.user.user?.email);
+  const { user } = useSelector((state: RootState) => state.user);
+  console.log(user)
   const [toneStyle, setToneStyle] = useState("Professional & Helpful");
   const [systemPrompt, setSystemPrompt] = useState(
     "You are a helpful AI assistant that provides accurate information...",
@@ -42,6 +43,34 @@ export default function AssistantSettings() {
   const [alwaysListening, setAlwaysListening] = useState(true);
   const [spokenResponses, setSpokenResponses] = useState(false);
 
+  const loadPreferences = async () => {
+    try {
+      const req = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/user/${user?.email}/preferences`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      const res = await req.json();
+      if (res.success) {
+        console.log(res.data)
+        setLlmProvider(res.data.llm_provider);
+        setModelSelection(res.data.llm_model);
+        setToneStyle(res.data.tone);
+        setSystemPrompt(res.data.system_prompt);
+        setMaxTokens(res.data.max_tokens);
+        setCreativity(res.data.temperature * 100);
+      }
+    } catch (error) {
+      console.error("Error loading assistant settings:", error);
+      SendNotification("Failed to load assistant settings", "error");
+    }
+  }
+
+  useEffect(() => {
+    loadPreferences();
+  }, [user?.email]);
+
   const handleUpdateSettings = async () => {
     try {
       const req = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/user/preferences`, {
@@ -50,7 +79,7 @@ export default function AssistantSettings() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: email,
+          email: user?.email,
           llm_provider: llmProvider,
           llm_model: modelSelection,
           api_key: "",

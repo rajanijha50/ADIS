@@ -1,6 +1,8 @@
 import React, { useRef, useMemo, useEffect, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { X, Mic, MicOff, MessageSquare } from 'lucide-react';
+import { useDispatch } from 'react-redux';
+import { setVoiceUiOpen } from '../features/assistant/assistantSlice';
 
 // ─── constants ───────────────────────────────────────────────────────────────
 const COUNT  = 3800;
@@ -66,9 +68,9 @@ const ParticleSphere = ({ amplitudeRef }) => {
       </bufferGeometry>
       <pointsMaterial
         size={0.065}
-        color="blue"
+        color="white"
         transparent
-        opacity={0.99}
+        opacity={0.89}
         sizeAttenuation
         depthWrite={false}
       />
@@ -78,9 +80,10 @@ const ParticleSphere = ({ amplitudeRef }) => {
 
 
 // ─── main component ────────────────────────────────────────────────────────────
-export default function VoiceAssistantNewUI({setOpened}: {setOpened: (opened: boolean) => void}) {
+export default function VoiceAssistantNewUI() {
+  const dispatch = useDispatch();
   const [listening, setListening]   = useState(false);
-  const [showCC, setShowCC]      = useState(true);
+  const [showCC, setShowCC]      = useState(localStorage.getItem("showCC") === "true" ? true : false);
   const [transcript, setTranscript]  = useState('');
   const [interim, setInterim]     = useState('');
   // const [opened, setOpened]      = useState(status);
@@ -90,7 +93,11 @@ export default function VoiceAssistantNewUI({setOpened}: {setOpened: (opened: bo
   const dataRef      = useRef(null);
   const streamRef    = useRef(null);
   const recRef       = useRef(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
+  useEffect(() => {
+    localStorage.setItem("showCC", showCC.toString());
+  }, [showCC]);
   // useEffect(() => {
   // console.log("interim: ", interim)
   // console.log("transcript: ",transcript)
@@ -135,32 +142,75 @@ export default function VoiceAssistantNewUI({setOpened}: {setOpened: (opened: bo
       analyserRef.current = analyser;
       dataRef.current     = new Uint8Array(analyser.frequencyBinCount);
 
-      // Web Speech API for transcription
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (SR) {
-        const r = new SR();
-        r.continuous      = true;
-        r.interimResults  = true;
-        r.lang            = 'en-US';
-        r.onresult = (e) => {
-          let fin = '', tmp = '';
-          for (let i = e.resultIndex; i < e.results.length; i++) {
-            if (e.results[i].isFinal) fin += e.results[i][0].transcript + ' ';
-            else                       tmp += e.results[i][0].transcript;
-          }
-          if (fin) setTranscript(p => (p + fin).slice(-400));
-          setInterim(tmp);
-        };
-        r.onerror = () => {};
-        r.start();
-        recRef.current = r;
+      setListening(true);
+      setTranscript('');
+      setInterim('Listening...');
+
+      // Abort previous request if any
+      if (abortControllerRef.current) abortControllerRef.current.abort();
+      abortControllerRef.current = new AbortController();
+
+      // Call Backend API for transcription
+      try {
+        const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/voice/listen`, {
+          signal: abortControllerRef.current.signal,
+          credentials: "include",
+        });
+        const data = await response.json();
+        
+        if (data.text) {
+          console.log("data text: ",data.text)
+          setTranscript(data.text);
+          setInterim('');
+        } else if (data.error) {
+          setTranscript('Error: ' + data.error);
+          setInterim('');
+        }
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+          console.log('Fetch aborted');
+        } else {
+          console.error('API Error:', err);
+          setTranscript('Connection error');
+          setInterim('');
+        }
+      } finally {
+        setListening(false);
+        stopListening();
+        abortControllerRef.current = null;
       }
 
-      setListening(true);
     } catch (e) {
       console.warn('Microphone access denied:', e);
     }
   };
+
+  const handleSpeak = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/voice/speak`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: String(transcript) }),
+        credentials: "include",
+      });
+      const data = await response.json();
+      if (data.error) {
+        console.error('Data Error:', data.error);
+      }
+      console.log(data.status)
+    } catch (err) {
+      console.error('Error:', err);
+    }
+  };
+
+  useEffect(() => {
+    console.log("transcript: ", transcript)
+    // if (transcript && transcript.length > 0 && !listening) {
+    //   handleSpeak();
+    // }
+  }, [transcript]);
 
   // ── Stop mic + recognition ──────────────────────────────────────────────────
   const stopListening = () => {
@@ -170,6 +220,12 @@ export default function VoiceAssistantNewUI({setOpened}: {setOpened: (opened: bo
     dataRef.current    = null;
     try { recRef.current?.stop(); } catch (_) {}
     recRef.current = null;
+    
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+
     setListening(false);
     setInterim('');
   };
@@ -257,7 +313,7 @@ export default function VoiceAssistantNewUI({setOpened}: {setOpened: (opened: bo
               transition-all duration-200 hover:bg-[#12192f]
             "
           >
-            <X onClick={() => setOpened(false)} size={22} strokeWidth={1.5} className="text-[#4b5563]" />
+            <X onClick={() => dispatch(setVoiceUiOpen(false))} size={22} strokeWidth={1.5} className="text-[#4b5563]" />
           </button>
 
           {/* Mic toggle — pulses when listening */}

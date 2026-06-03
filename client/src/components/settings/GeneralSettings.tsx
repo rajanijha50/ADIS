@@ -22,6 +22,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../app/store";
 export default function GeneralSettings() {
   const { user } = useSelector((state: RootState) => state.user);
+  // console.log("user in settings: ", user)
 
   const [animationsEnabled, setAnimationsEnabled] = useState(() => {
     const saved = localStorage.getItem("app-animations");
@@ -38,10 +39,10 @@ export default function GeneralSettings() {
     return saved !== null ? JSON.parse(saved) : true;
   });
 
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [avatar, setAvatar] = useState<string | null>("");
+  const [fullName, setFullName] = useState(user?.full_name || "");
+  const [email, setEmail] = useState(user?.email || "");
+  const [phoneNumber, setPhoneNumber] = useState(user?.contact || "");
+  const [avatar, setAvatar] = useState<string | null>(user?.profile_pic || "");
   const [twitterURL, setTwitterURL] = useState("");
   const [githubURL, setGithubURL] = useState("");
   const [linkedinURL, setLinkedInURL] = useState("");
@@ -83,7 +84,7 @@ export default function GeneralSettings() {
 
     try{
       const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/user/profile`, {
-      method: "POST",
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
@@ -146,7 +147,7 @@ export default function GeneralSettings() {
 
           <div className="flex flex-col md:flex-row gap-10">
             {/* Avatar Upload */}
-            <div className="hidden flex flex-col items-center gap-4">
+            <div className="flex flex-col items-center gap-4">
               <div className="relative group">
                 {avatar ? (
                   <img
@@ -156,7 +157,7 @@ export default function GeneralSettings() {
                   />
                 ) : (
                   <>
-                    <div className="w-32 h-32 rounded-full border-2 border-dashed border-border-divider flex items-center justify-center bg-input overflow-hidden group-hover:border-accent-primary transition-all">
+                    <div className="hidden w-32 h-32 rounded-full border-2 border-dashed border-border-divider flex items-center justify-center bg-input overflow-hidden group-hover:border-accent-primary transition-all">
                       <User
                         size={48}
                         className="text-placeholder group-hover:scale-110 transition-transform"
@@ -182,7 +183,7 @@ export default function GeneralSettings() {
               </div>
 
               {avatar && (
-                <div className="w-32 flex justify-around items-center">
+                <div className="hidden w-32 flex justify-around items-center">
                   <button
                     title="Edit"
                     className="relative p-2 rounded-md hover:bg-input-hover text-primary hover:text-accent-primary transition-colors"
@@ -210,7 +211,7 @@ export default function GeneralSettings() {
             {/* Form Fields */}
             <div className="flex-1 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-                <div className="space-y-2 w-fit">
+                <div className="space-y-2 w-fit flex flex-col">
                   <label className="text-sm font-medium text-text-secondary">
                     Full Name
                   </label>
@@ -219,19 +220,22 @@ export default function GeneralSettings() {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Tony Stark"
-                    className="w-full bg-input border border-border-input rounded-lg px-4 py-2.5 text-primary placeholder-placeholder focus:outline-none focus:border-border-input-focus focus:ring-1 focus:ring-focus-glow transition-all"
+                    className="w-72 bg-input border border-border-input rounded-lg px-4 py-2.5 text-primary placeholder-placeholder focus:outline-none focus:border-border-input-focus focus:ring-1 focus:ring-focus-glow transition-all"
                   />
                 </div>
-                <div className="space-y-2 w-fit">
+                <div className="space-y-2 w-fit flex flex-col">
                   <label className="text-sm font-medium text-text-secondary flex items-center gap-2">
                     <Mail size={14} /> Email Address
                   </label>
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    // disabled
+                    onChange={() => {
+                      SendNotification("Email change not allowed", "error");
+                    }}
                     placeholder="tony@starkindustries.com"
-                    className="w-full bg-input border border-border-input rounded-lg px-4 py-2.5 text-primary placeholder-placeholder focus:outline-none focus:border-border-input-focus focus:ring-1 focus:ring-focus-glow transition-all"
+                    className="w-72 bg-input border border-border-input rounded-lg px-4 py-2.5 text-primary placeholder-placeholder focus:outline-none focus:border-border-input-focus focus:ring-1 focus:ring-focus-glow transition-all"
                   />
                 </div>
                 <div className="space-y-2 w-fit">

@@ -3,11 +3,7 @@ import AudioLinesIcon from "./AudioLinesIcon";
 import { useSelector } from "react-redux";
 import { RootState } from "../app/store";
 
-const HeroSection = ({
-  setOpened,
-}: {
-  setOpened: (opened: boolean) => void;
-}) => {
+const HeroSection = () => {
   const { user } = useSelector((state: RootState) => state.user);
   const { name: AssistantName, userName: UserName } = useSelector(
     (state: RootState) => state.assistant
@@ -35,7 +31,7 @@ const HeroSection = ({
             className="absolute -inset-full rounded-full blur-2xl"
             style={{ background: "var(--color-bg-orb)" }}
           />
-          Hey {displayName.split(" ")[0]}, I'm{" "}
+          Hey {displayName.length > 10 ? displayName.split(" ")[0] : displayName}, I'm{" "}
           <span className="text-gradient-accent capitalize">
             {AssistantName}
           </span>
@@ -51,7 +47,7 @@ const HeroSection = ({
       </section>
 
       <section className="w-full flex justify-center border-0 border-red-500">
-        <InputField setOpened={setOpened} session_id={''} />
+        <InputField session_id={''} />
       </section>
     </main>
   );

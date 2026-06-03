@@ -4,18 +4,15 @@ interface UserState {
   user: {
     email: string;
     full_name: string;
+    contact: string;
     profile_pic: string | null;
   } | null;
   loading: boolean;
 }
 
 const initialState: UserState = {
-  user: {
-    email: "bittujha9142@gmail.com",
-    full_name: "Baburao",
-    profile_pic: null
-  },
-  loading: true,
+  user: null,
+  loading: false,
 }
 
 export const userSlice = createSlice({

@@ -63,14 +63,11 @@ const Sidebar = () => {
 
   const getAllChats = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/text/list_sessions`, {
-        method: "POST",
+      const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/session/list/${user?.email}`, {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          email: user?.email
-        }),
       })
 
       const data = await res.json();

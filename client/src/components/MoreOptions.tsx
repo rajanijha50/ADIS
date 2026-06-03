@@ -11,10 +11,11 @@ const MoreOptions = ({ refMe }: { refMe: React.Ref<HTMLDivElement> }) => {
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
     try {
-      await fetch("http://localhost:8000/auth/logout", {
+      await fetch(`${import.meta.env.VITE_SERVER_URL}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
       });
+      localStorage.removeItem("auth_token");
       dispatch(clearUser());
       navigate("/auth");
     } catch (err) {
