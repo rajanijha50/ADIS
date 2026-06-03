@@ -71,10 +71,10 @@ async def synthesize_to_bytes(text: str, voice: str = "en-GB-RyanNeural") -> byt
     text = clean_text(text)
     return await _generate_audio_bytes(text, voice)
 
-text = """To develop a comprehensive understanding of data structures and algorithms, consider the following step-by-step plan:
-* Begin by reviewing the fundamentals of programming, including data types, variables, control structures, functions, and object-oriented programming concepts, to ensure a solid foundation for learning data structures and algorithms.
-* Familiarize yourself with basic data structures such as arrays, linked lists, stacks, and queues, and practice implementing them in your preferred programming language."""
-speak_to_user(text)
+# text = """To develop a comprehensive understanding of data structures and algorithms, consider the following step-by-step plan:
+# * Begin by reviewing the fundamentals of programming, including data types, variables, control structures, functions, and object-oriented programming concepts, to ensure a solid foundation for learning data structures and algorithms.
+# * Familiarize yourself with basic data structures such as arrays, linked lists, stacks, and queues, and practice implementing them in your preferred programming language."""
+# speak_to_user(text)
 
 # text = "i have uploaded all the files to the drive as you said. and its currently 8:50 pm. taking about the weather, its 36°C and cloudy. "
 # audio_b64 = synthesize_to_bytes(text)

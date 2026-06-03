@@ -8,10 +8,8 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-# Electron build outputs
 dist/
 dist-electron/
-electron/
 release/
 
 # Electron builder cache
