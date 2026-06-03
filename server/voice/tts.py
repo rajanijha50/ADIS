@@ -12,6 +12,17 @@ import edge_tts
 import asyncio
 import pygame
 
+# Characters to avoid/remove from input text (markdown special characters)
+CHARS_TO_AVOID = ['-', '*', '#', '`', '_', '[', ']', '(', ')', '{', '}', '\\', '|', '~', '^']
+
+def clean_text(text: str) -> str:
+    """Remove markdown and special characters from text while preserving readability."""
+    for char in CHARS_TO_AVOID:
+        text = text.replace(char, '')
+    # Clean up extra whitespace
+    text = ' '.join(text.split())
+    return text
+
 async def _generate_audio(text: str, output_file: str, voice: str = "en-GB-RyanNeural"):
     """Calls the Edge-TTS API to generate the hyper-realistic voice."""
     communicate = edge_tts.Communicate(text, voice)
@@ -19,6 +30,8 @@ async def _generate_audio(text: str, output_file: str, voice: str = "en-GB-RyanN
 
 def speak_to_user(text: str, voice: str = "en-GB-RyanNeural"):
     """generates AI audio and plays it instantly."""
+    # Clean the text from markdown and special characters
+    text = clean_text(text)
     print(f"Assistant: {text}")
     
     audio_file = "response.mp3"
@@ -54,11 +67,17 @@ async def _generate_audio_bytes(text: str, voice: str) -> bytes:
 
 async def synthesize_to_bytes(text: str, voice: str = "en-GB-RyanNeural") -> bytes:
     """Returns MP3 audio bytes for the given text. No playback, no file."""
+    # Clean the text from markdown and special characters
+    text = clean_text(text)
     return await _generate_audio_bytes(text, voice)
 
-# text = "i have uploaded all the files to the drive as you said. and its currently 8:50 pm. taking about the weather, its 36°C and cloudy. "
-# speak_to_user(text)
+text = """To develop a comprehensive understanding of data structures and algorithms, consider the following step-by-step plan:
+* Begin by reviewing the fundamentals of programming, including data types, variables, control structures, functions, and object-oriented programming concepts, to ensure a solid foundation for learning data structures and algorithms.
+* Familiarize yourself with basic data structures such as arrays, linked lists, stacks, and queues, and practice implementing them in your preferred programming language."""
+speak_to_user(text)
 
 # text = "i have uploaded all the files to the drive as you said. and its currently 8:50 pm. taking about the weather, its 36°C and cloudy. "
 # audio_b64 = synthesize_to_bytes(text)
 # print(len(audio_b64), "bytes of audio")
+
+

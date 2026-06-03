@@ -22,20 +22,20 @@ def helper(success: bool, message: str, data: Any = None):
         "data": data
     }
 
-def add_to_database(session_id: int, query: str, response: str, intent: str = None):
-    if not session_id or not query:
-        print("Missing required parameters for database insertion.")
-        return helper(False, "Missing required parameters for database insertion.")
+# def add_to_database(session_id: int, query: str, response: str, intent: str = None):
+#     if not session_id or not query:
+#         print("Missing required parameters for database insertion.")
+#         return helper(False, "Missing required parameters for database insertion.")
 
-    try:
-        if intent and response:
-            conn = get_connection()
-            add_message(conn, session_id=session_id, role="user", content=query, intent=intent, input_type="text")
-            add_message(conn, session_id=session_id, role="assistant", content=response)
-        return helper(True, "Messages added to database successfully.", data = response)
-    except Exception as e:
-        print(f"Database insertion error: {e}")
-        return helper(False, f"Database insertion error: {str(e)}")
+#     try:
+#         if intent and response:
+#             conn = get_connection()
+#             add_message(conn, session_id=session_id, role="user", content=query, intent=intent, input_type="text")
+#             add_message(conn, session_id=session_id, role="assistant", content=response)
+#         return helper(True, "Messages added to database successfully.", data = response)
+#     except Exception as e:
+#         print(f"Database insertion error: {e}")
+#         return helper(False, f"Database insertion error: {str(e)}")
 
 
 @router.post("/api/text/completion")
@@ -59,7 +59,8 @@ async def chat_completion(request: ChatCompletionRequest):
         if dispatcher_response.get("success") is False:
             return helper(False, "Command not recognized or failed to execute")
 
-        if dispatcher_response.get("intent") == "general_query":
+        intent = dispatcher_response.get("intent")
+        if intent == "general_query":
             llm_response = handle_llm_query(
                 user_input=request.query,
                 email=request.email,
@@ -69,7 +70,11 @@ async def chat_completion(request: ChatCompletionRequest):
             )
             return helper(True, "LLM query processed successfully.", data=llm_response)
 
-        return add_to_database(session_id=request.session, query=request.query, response=dispatcher_response.get("response"), intent=dispatcher_response.get("intent"))
+        response_message = dispatcher_response.get("response")
+        # add user input and assistant response to database
+        add_message(conn, session_id=request.session, role="user", content=request.query, intent=intent, input_type="text")
+        add_message(conn, session_id=request.session, role="assistant", content=response_message, input_type="text")
+        return helper(True, "Command processed successfully.", data=response_message)
 
     except Exception as e:
         print(f"Text completion error: {e}")
