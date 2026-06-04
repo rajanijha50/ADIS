@@ -109,28 +109,6 @@ def create_tables(conn: sqlite3.Connection):
 
 # HELPER FUNCTIONS:
 
-# user helpers
-def create_user(conn: sqlite3.Connection, name: str, email: str) -> int:
-    """Insert a new user. Returns the new user_id."""
-    cur = conn.execute(
-        "INSERT INTO users (name, email, created_at) VALUES (?, ?, ?)",
-        (name, email, now()),
-    )
-    conn.commit()
-    return cur.lastrowid
-
-def get_user(conn: sqlite3.Connection, email: str) -> sqlite3.Row | None:
-    return conn.execute(
-        "SELECT * FROM users WHERE email = ?", (email,)
-    ).fetchone()
-
-def update_user(conn: sqlite3.Connection, email: str, name: str, contact: str) -> None:
-    """
-    Update user fields."""
-    conn.execute(
-        "UPDATE users SET name = ?, contact = ? WHERE email = ?", (name, contact, email)
-    )
-    conn.commit()
 
 # user preferences helpers
 def upsert_user_preferences(conn: sqlite3.Connection, email: str, **kwargs) -> None:
@@ -222,6 +200,31 @@ def get_all_memory(conn: sqlite3.Connection, email: str) -> list[dict]:
 def delete_memory(conn: sqlite3.Connection, email: str, key: str) -> None:
     conn.execute(
         "DELETE FROM user_memory WHERE email = ? AND key = ?", (email, key)
+    )
+    conn.commit()
+
+# user helpers
+def create_user(conn: sqlite3.Connection, name: str, email: str) -> int:
+    """Insert a new user. Returns the new user_id."""
+    cur = conn.execute(
+        "INSERT INTO users (name, email, created_at) VALUES (?, ?, ?)",
+        (name, email, now()),
+    )
+    conn.commit()
+    # create default preferences for the new user
+    upsert_user_preferences(conn, email)
+    return cur.lastrowid
+
+def get_user(conn: sqlite3.Connection, email: str) -> sqlite3.Row | None:
+    return conn.execute(
+        "SELECT * FROM users WHERE email = ?", (email,)
+    ).fetchone()
+
+def update_user(conn: sqlite3.Connection, email: str, name: str, contact: str) -> None:
+    """
+    Update user fields."""
+    conn.execute(
+        "UPDATE users SET name = ?, contact = ? WHERE email = ?", (name, contact, email)
     )
     conn.commit()
 

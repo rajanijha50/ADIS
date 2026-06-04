@@ -54,17 +54,15 @@ async def get_preferences(email: str):
 async def save_preferences(preferences: UserPreferences):
     try:
         conn = get_connection()
+        # Extract email directly from the Pydantic model
+        email = preferences.email
+        # Convert the model to a plain dict and remove email before passing
+        pref_dict = preferences.dict()
+        pref_dict.pop("email", None)
         upsert_user_preferences(
             conn,
-            preferences.email,
-            preferences.llm_provider,
-            preferences.llm_model,
-            preferences.api_key,
-            preferences.tone,
-            preferences.language,
-            preferences.max_tokens,
-            preferences.temperature,
-            preferences.system_prompt
+            email,
+            **pref_dict
         )
         return helper(True, "Preferences saved successfully")
     except Exception as e:

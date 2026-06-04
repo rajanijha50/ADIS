@@ -297,7 +297,7 @@ export default function Auth() {
                       onClick={() => {
                         window.ipcRenderer.send(
                           "open-external-url",
-                          "http://localhost:5173/auth?source=electron",
+                          `${import.meta.env.VITE_CLIENT_URL}/auth?source=electron`,
                         );
                       }}
                       type="button"
@@ -330,7 +330,7 @@ export default function Auth() {
                       onClick={() => {
                         window.ipcRenderer.send(
                           "open-external-url",
-                          "http://localhost:5173/auth?source=electron",
+                          `${import.meta.env.VITE_CLIENT_URL}/auth?source=electron`,
                         );
                       }}
                       type="button"

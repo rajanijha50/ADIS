@@ -21,6 +21,8 @@ app.include_router(user_router)
 app.include_router(session_router)
 
 origins = [
+    "http://localhost:5173",        # dev browser
+    "http://localhost:4173",        # vite preview
     CLIENT_URL,
 ]
 
