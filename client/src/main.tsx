@@ -8,12 +8,13 @@ import ReduxProvider from "./app/ReduxProvider.tsx";
 
 const MS_CLIENT_ID = import.meta.env.VITE_MS_CLIENT_ID;
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const CLIENT_URL = import.meta.env.VITE_CLIENT_URL;
 
 const msalConfig = {
   auth: {
     clientId: MS_CLIENT_ID,
     authority: "https://login.microsoftonline.com/common",
-    redirectUri: "http://localhost:5173",
+    redirectUri: `${CLIENT_URL}`,
   },
 };
 const msalInstance = new PublicClientApplication(msalConfig);

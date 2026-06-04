@@ -13,12 +13,98 @@ from db.sqliteDB import (
     get_active_session,
 )
 from automation.message_chatbot import handle_message_chatbot
+import re
+import json
 
 
 # constants for LLM handler behavior
 RECENT_MESSAGES_LIMIT = 20
 SUMMARISE_THRESHOLD = 30
 KEEP_AFTER_SUMMARISE = 10
+
+
+def clean_chatbot_output(text: str) -> str:
+    """
+    Remove markdown formatting like asterisks (**bold**), headers (#),
+    bullet points (- item), numbered list indicators, and other markdown from text.
+    """
+    if not text:
+        return text
+    # Remove markdown bold/italic syntax (asterisks and underscores)
+    text = re.sub(r'\*+', '', text)
+    text = re.sub(r'_+', '', text)
+    # Remove blockquotes
+    text = re.sub(r'^>\s+', '', text, flags=re.MULTILINE)
+    # Remove header markings
+    text = re.sub(r'^#+\s+', '', text, flags=re.MULTILINE)
+    # Remove bullet points
+    text = re.sub(r'^[-\*\+]\s+', '', text, flags=re.MULTILINE)
+    # Remove numbered lists
+    text = re.sub(r'^\d+\.\s+', '', text, flags=re.MULTILINE)
+    # Remove backticks and code blocks
+    text = re.sub(r'`', '', text)
+    return text.strip()
+
+
+def extract_and_update_user_memory(conn, email: str, current_input: str, prefs: dict) -> None:
+    """
+    Retrieves current user memory from sqlite, feeds it along with current user input to LLM,
+    and updates/upserts any changes or new key-value facts in the database.
+    """
+    # 1. Fetch current memory from DB
+    current_memory_list = get_all_memory(conn, email)
+    current_memory_dict = {row["key"]: row["value"] for row in current_memory_list}
+
+    # 2. Format memory for prompt
+    current_memory_json = json.dumps(current_memory_dict, indent=2)
+
+    # 3. Create the prompt for LLM memory extraction
+    memory_prompt = (
+        f"You are a memory extractor. Analyze the user's current input and update or add facts to their memory table.\n\n"
+        f"Current Memory:\n{current_memory_json}\n\n"
+        f"User's Current Input:\n\"{current_input}\"\n\n"
+        f"Instructions:\n"
+        f"1. Identify any key information/facts about the user from the current input (e.g. name, preferences, job, hobbies, relationship details, likes, dislikes, settings).\n"
+        f"2. Return the UPDATED memory table including all existing facts plus any newly extracted/updated facts.\n"
+        f"3. If an existing fact is modified or corrected in the input, update its value.\n"
+        f"4. If no new or useful information is found, return the previous memory EXACTLY as it was.\n"
+        f"5. Your response must be in valid JSON format only, mapping keys to values (e.g., {{\"occupation\": \"student\", \"city\": \"New York\"}}). Do not include any explanation, code blocks, or markdown syntax. Output only raw JSON."
+    )
+
+    system_prompt = "You are a database memory assistant. You output valid JSON representing user facts."
+
+    try:
+        response = handle_message_chatbot(
+            query=memory_prompt,
+            llm_provider=prefs["llm_provider"],
+            llm_model=prefs["llm_model"],
+            tone="concise",
+            language=prefs.get("language", "en"),
+            max_tokens=512,
+            temperature=0.1,  # Low temperature for deterministic output
+            system_prompt=system_prompt,
+        )
+
+        # Clean response in case LLM wrapped it in markdown code fences
+        cleaned_response = response.strip()
+        if cleaned_response.startswith("```"):
+            cleaned_response = re.sub(r'^```(?:json)?\n', '', cleaned_response)
+            cleaned_response = re.sub(r'\n```$', '', cleaned_response)
+            cleaned_response = cleaned_response.strip()
+
+        new_memory_dict = json.loads(cleaned_response)
+
+        # Ensure it's a dictionary
+        if isinstance(new_memory_dict, dict):
+            # Upsert updated or new keys
+            for key, val in new_memory_dict.items():
+                if key not in current_memory_dict or current_memory_dict[key] != str(val):
+                    upsert_memory(conn, email, key, str(val))
+                    print(f"[llm_handler] Memory updated: {key} -> {val}")
+        else:
+            print(f"[llm_handler] Warning: Extracted memory is not a dictionary.")
+    except Exception as e:
+        print(f"[llm_handler] Error in extract_and_update_user_memory: {e}")
 
 
 # system prompt builder (Layer 1 + Layer 2)
@@ -178,7 +264,7 @@ def handle_llm_query(
         print('\n\n[OK] full message: ', full_message)
 
         # step 4: Call the LLM ─────────────
-        response = handle_message_chatbot(
+        raw_response = handle_message_chatbot(
             query=full_message,
             llm_provider=prefs["llm_provider"],
             llm_model=prefs["llm_model"],
@@ -188,7 +274,11 @@ def handle_llm_query(
             temperature=prefs["temperature"],
             system_prompt=system_prompt,
         )
-        print('\n\n[OK] final response in llm_handler: ', response)
+        response = clean_chatbot_output(raw_response)
+        print('\n\n[OK] final response in llm_handler (cleaned): ', response)
+
+        # step 4.5: Extract and update user memory ─────────
+        extract_and_update_user_memory(conn, email, user_input, prefs)
 
         # step 5: Persist the new turn ─────
         add_message(

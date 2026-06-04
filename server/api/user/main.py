@@ -28,13 +28,21 @@ class UserProfile(BaseModel):
     name: str
     contact: str = None
 
-@router.get("/api/user/profile/{email}")
+@router.get("/api/user/{email}/profile")
 async def get_user_profile(email: str):
     """Gets the user profile"""
     try:
-        conn = get_connection()
-        user = get_user(conn, email)
-        return helper(True, "User profile retrieved successfully", user)
+        user = UserModel.find_one({"email": email})
+        data = {
+            "name": user.get("name"),
+            "email": user.get("email"),
+            "profile_pic": user.get("profile_pic"),
+            "contact": user.get("contact")
+        }
+        if user:
+            return helper(True, "User profile retrieved successfully", data)
+        else:
+            return helper(False, "User not found!")
     except Exception as e:
         print(f"Error getting user profile: {e}")
         return helper(False, "An error occurred while getting the user profile")

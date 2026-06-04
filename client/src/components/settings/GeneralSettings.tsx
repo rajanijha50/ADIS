@@ -65,6 +65,29 @@ export default function GeneralSettings() {
     }
   }
 
+  async function getUserProfile () {
+    try {
+      const req = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/user/${user?.email}/profile`);
+      const res = await req.json();
+      if (res.success) {
+        console.log("res in user profile: ", res)
+        setFullName(res.data.name);
+        setPhoneNumber(res.data.contact);
+        setAvatar(res.data.profile_pic);
+      }
+      else {
+        SendNotification(res.message, "error");
+      }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      SendNotification("Failed to fetch user profile", "error");
+    }
+  }
+
+  useEffect(() => {
+    getUserProfile();
+  }, [user?.email]);
+
   async function handleUpdateProfile () {
     // SendNotification('message saved successfully!', 'default')
     if (!fullName || !user?.email || !phoneNumber) {
@@ -96,8 +119,13 @@ export default function GeneralSettings() {
     });
 
     const data = await response.json();
-    console.log(data)
-    
+    if (data.success) {
+      SendNotification(data.message, "success");
+      getUserProfile();
+    }
+    else {
+      SendNotification(data.message, "error");
+    }
     } catch (error) {
       console.log(error);
     }

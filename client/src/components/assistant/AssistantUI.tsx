@@ -238,6 +238,11 @@ export default function VoiceAssistantUI() {
             setTranscript("");
             setInterim("");
             setCurrentLineIndex(0);
+
+            // // start listening again after a delay
+            // setTimeout(() => {
+            //   startListening();
+            // }, 2000);
           };
 
           await audio.play();
