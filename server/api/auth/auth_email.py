@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Response, Request
 from pydantic import BaseModel
 from bson import ObjectId
-from api.auth.auth_utils import create_jwt, set_auth_cookie, verify_jwt, get_token_from_cookie
+from api.auth.auth_utils import create_jwt, set_auth_cookie, verify_jwt, get_token_from_cookie, delete_auth_cookie
 from db.sqliteDB import create_user, get_connection
 from db.mongoDB import UserModel
 from db.utils import hash_password, now
@@ -91,7 +91,7 @@ def login(body: EmailLoginRequest, response: Response):
 
 @router.post("/api/auth/logout")
 def logout(response: Response):
-    response.delete_cookie(key="auth_token")
+    delete_auth_cookie(response)
     return {"message": "Logged out"}
 
 class SetTokenRequest(BaseModel):

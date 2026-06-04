@@ -24,6 +24,7 @@ origins = [
     "http://localhost:5173",        # dev browser
     "http://localhost:4173",        # vite preview
     CLIENT_URL,
+    "https://adis-coral.vercel.app"
 ]
 
 app.add_middleware(

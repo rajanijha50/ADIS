@@ -73,6 +73,9 @@ export default function Auth() {
         setExternalAuthSuccess(true);
         window.location.href = `adis://auth-callback?token=${data.token}`;
       } else {
+        if (data.token) {
+          localStorage.setItem("auth_token", data.token);
+        }
         navigate("/");
       }
     } catch (err: any) {
@@ -103,6 +106,9 @@ export default function Auth() {
         setExternalAuthSuccess(true);
         window.location.href = `adis://auth-callback?token=${data.token}`;
       } else {
+        if (data.token) {
+          localStorage.setItem("auth_token", data.token);
+        }
         navigate("/");
       }
     } catch (err: any) {

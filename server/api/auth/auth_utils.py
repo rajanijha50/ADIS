@@ -24,20 +24,39 @@ def verify_jwt(token: str) -> dict:
 
 def set_auth_cookie(response, token: str):
     """Set the auth_token cookie in the response."""
+    from config.config import CLIENT_URL
+    is_secure = False
+    samesite_val = "lax"
+    if CLIENT_URL and CLIENT_URL.startswith("https://"):
+        is_secure = True
+        samesite_val = "none"
+
     response.set_cookie(
         key="auth_token",
         value=token,
         httponly=True,
         max_age=JWT_EXPIRE_MINUTES * 60,
         expires=JWT_EXPIRE_MINUTES * 60,
-        samesite="lax",
-        secure=False,
+        samesite=samesite_val,
+        secure=is_secure,
     )
 
 
 def delete_auth_cookie(response):
     """Remove the auth_token cookie from the response."""
-    response.delete_cookie(key="auth_token")
+    from config.config import CLIENT_URL
+    is_secure = False
+    samesite_val = "lax"
+    if CLIENT_URL and CLIENT_URL.startswith("https://"):
+        is_secure = True
+        samesite_val = "none"
+
+    response.delete_cookie(
+        key="auth_token",
+        httponly=True,
+        samesite=samesite_val,
+        secure=is_secure,
+    )
 
 
 def get_token_from_cookie(request):
