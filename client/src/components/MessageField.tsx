@@ -76,15 +76,15 @@ const handleCopyClick = async (message: string) => {
   await navigator.clipboard.writeText(message);
 }
 
-const handleLikeClick = async (message: string) => {
+const handleLikeClick = async (_message: string) => {
   SendNotification("Liked", "success");
 }
 
-const handleDislikeClick = async (message: string) => {
+const handleDislikeClick = async (_message: string) => {
   SendNotification("Disliked", "success");
 }
 
-const handleShareClick = async (message: string) => {
+const handleShareClick = async (_message: string) => {
   SendNotification("Shared", "success");
 }
 

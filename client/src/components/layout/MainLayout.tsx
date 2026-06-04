@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setUser, clearUser } from "../../features/user/userSlice";
 import { RootState } from "../../app/store";
@@ -10,6 +10,7 @@ import { SendNotification } from "../SendNotification";
 export default function MainLayout() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const {pathname} = useLocation();
   const { loading } = useSelector((state: RootState) => state.user);
   const isVoiceUiOpen = useSelector(
     (state: RootState) => state.assistant.isVoiceUiOpen,
@@ -69,7 +70,7 @@ export default function MainLayout() {
 
   return (
     <div className="flex h-screen">
-      <Sidebar />
+      {!pathname.includes("/settings") && <Sidebar />}
       <main className="flex-1 overflow-hidden">
         <Outlet />
       </main>

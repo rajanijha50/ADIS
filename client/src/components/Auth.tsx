@@ -21,7 +21,9 @@ export default function Auth() {
     setError("");
     setLoading(true);
 
-    const endpoint = isLogin ? "/api/auth/email/login" : "/api/auth/email/signup";
+    const endpoint = isLogin
+      ? "/api/auth/email/login"
+      : "/api/auth/email/signup";
     const body: any = { email, password };
     if (!isLogin) body.full_name = fullName;
 
@@ -51,12 +53,15 @@ export default function Auth() {
   const handleGoogleSuccess = async (credentialResponse: any) => {
     console.log(credentialResponse);
     try {
-      const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/auth/google/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: credentialResponse.credential }),
-        credentials: "include",
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_SERVER_URL}/api/auth/google/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: credentialResponse.credential }),
+          credentials: "include",
+        },
+      );
       const data = await res.json();
       console.log("google auth data: ", data);
       if (!res.ok) throw new Error(data.detail || "Google auth failed");
@@ -79,12 +84,15 @@ export default function Auth() {
       const loginResponse = await instance.loginPopup({
         scopes: ["user.read", "openid", "profile", "email"],
       });
-      const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/auth/microsoft/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ access_token: loginResponse.accessToken }),
-        credentials: "include",
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_SERVER_URL}/api/auth/microsoft/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ access_token: loginResponse.accessToken }),
+          credentials: "include",
+        },
+      );
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || "Microsoft auth failed");
 
@@ -104,20 +112,30 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-app px-4 font-sans relative overflow-hidden text-primary">
-
-
       <div className="max-w-md w-full bg-card border border-card rounded-3xl shadow-[0_0_40px_var(--color-shadow-card)] p-8 relative overflow-hidden backdrop-blur-xl animate-fade-in-up">
-
         {externalAuthSuccess ? (
           <div className="text-center py-8 space-y-6 relative z-10">
             <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-border-accent border border-border-card text-accent-primary">
-              <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+              <svg
+                className="h-8 w-8"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
-            <h2 className="text-2xl font-extrabold text-primary">Successfully Authenticated!</h2>
+            <h2 className="text-2xl font-extrabold text-primary">
+              Successfully Authenticated!
+            </h2>
             <p className="text-sm text-secondary leading-relaxed">
-              You have successfully logged in. You can now close this browser tab and return to the ADIS application.
+              You have successfully logged in. You can now close this browser
+              tab and return to the ADIS application.
             </p>
             <div className="pt-2">
               <button
@@ -134,8 +152,9 @@ export default function Auth() {
             <div className="relative flex p-1 bg-input border border-input rounded-full w-full max-w-[280px] mx-auto mb-6">
               {/* Sliding indicator */}
               <div
-                className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-main border border-card rounded-full shadow-[0_0_10px_var(--color-shadow-glow)] transition-transform duration-300 ease-in-out ${isLogin ? "translate-x-0" : "translate-x-[calc(100%+4px)]"
-                  }`}
+                className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-main border border-card rounded-full shadow-[0_0_10px_var(--color-shadow-glow)] transition-transform duration-300 ease-in-out ${
+                  isLogin ? "translate-x-0" : "translate-x-[calc(100%+4px)]"
+                }`}
               ></div>
 
               <button
@@ -144,8 +163,9 @@ export default function Auth() {
                   setError("");
                 }}
                 type="button"
-                className={`relative flex-1 py-1.5 text-sm font-semibold transition-colors duration-300 z-10 ${isLogin ? "text-primary" : "text-muted hover:text-secondary"
-                  }`}
+                className={`relative flex-1 py-1.5 text-sm font-semibold transition-colors duration-300 z-10 ${
+                  isLogin ? "text-primary" : "text-muted hover:text-secondary"
+                }`}
               >
                 Log in
               </button>
@@ -155,8 +175,9 @@ export default function Auth() {
                   setError("");
                 }}
                 type="button"
-                className={`relative flex-1 py-1.5 text-sm font-semibold transition-colors duration-300 z-10 ${!isLogin ? "text-primary" : "text-muted hover:text-secondary"
-                  }`}
+                className={`relative flex-1 py-1.5 text-sm font-semibold transition-colors duration-300 z-10 ${
+                  !isLogin ? "text-primary" : "text-muted hover:text-secondary"
+                }`}
               >
                 Sign up
               </button>
@@ -167,7 +188,9 @@ export default function Auth() {
                 {isLogin ? "Welcome back" : "Create an account"}
               </h2>
               <p className="text-sm text-secondary">
-                {isLogin ? "Enter your credentials to continue" : "Join us to get started"}
+                {isLogin
+                  ? "Enter your credentials to continue"
+                  : "Join us to get started"}
               </p>
             </div>
 
@@ -178,7 +201,9 @@ export default function Auth() {
             )}
 
             <form className="relative z-10" onSubmit={handleEmailAuth}>
-              <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isLogin ? 'max-h-0 opacity-0' : 'max-h-[100px] opacity-100'}`}>
+              <div
+                className={`transition-all duration-300 ease-in-out overflow-hidden ${isLogin ? "max-h-0 opacity-0" : "max-h-[100px] opacity-100"}`}
+              >
                 <div className="pb-4">
                   <label className="block text-sm font-medium text-secondary mb-1.5 ml-1">
                     Full Name
@@ -272,7 +297,7 @@ export default function Auth() {
                       onClick={() => {
                         window.ipcRenderer.send(
                           "open-external-url",
-                          "http://localhost:5173/auth?source=electron"
+                          "http://localhost:5173/auth?source=electron",
                         );
                       }}
                       type="button"
@@ -305,13 +330,17 @@ export default function Auth() {
                       onClick={() => {
                         window.ipcRenderer.send(
                           "open-external-url",
-                          "http://localhost:5173/auth?source=electron"
+                          "http://localhost:5173/auth?source=electron",
                         );
                       }}
                       type="button"
                       className="w-full bg-white hover:bg-gray-100 border border-gray-300 text-gray-700 py-2.5 px-4 rounded-xl flex items-center justify-center gap-3 transition-all duration-200 cursor-pointer shadow-sm"
                     >
-                      <img src="/microsoft.svg" alt="Microsoft" className="w-5 h-5" />
+                      <img
+                        src="/microsoft.svg"
+                        alt="Microsoft"
+                        className="w-5 h-5"
+                      />
                       <span className="text-sm font-semibold">
                         Sign in with Microsoft
                       </span>
@@ -337,7 +366,11 @@ export default function Auth() {
                       type="button"
                       className="w-full bg-white hover:bg-gray-100 border border-gray-300 text-gray-700 py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer shadow-sm"
                     >
-                      <img src="/microsoft.svg" alt="Microsoft" className="w-5 h-5" />
+                      <img
+                        src="/microsoft.svg"
+                        alt="Microsoft"
+                        className="w-5 h-5"
+                      />
                       <span className="text-sm font-semibold">
                         Sign in with Microsoft
                       </span>

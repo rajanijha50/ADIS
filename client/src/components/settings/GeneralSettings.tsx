@@ -22,7 +22,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../app/store";
 export default function GeneralSettings() {
   const { user } = useSelector((state: RootState) => state.user);
-  // console.log("user in settings: ", user)
+  console.log("user in settings: ", user)
 
   const [animationsEnabled, setAnimationsEnabled] = useState(() => {
     const saved = localStorage.getItem("app-animations");
@@ -40,7 +40,7 @@ export default function GeneralSettings() {
   });
 
   const [fullName, setFullName] = useState(user?.full_name || "");
-  const [email, setEmail] = useState(user?.email || "");
+  // const [user?.email, setEmail] = useState(user?.user?.email || "");
   const [phoneNumber, setPhoneNumber] = useState(user?.contact || "");
   const [avatar, setAvatar] = useState<string | null>(user?.profile_pic || "");
   const [twitterURL, setTwitterURL] = useState("");
@@ -67,13 +67,13 @@ export default function GeneralSettings() {
 
   async function handleUpdateProfile () {
     // SendNotification('message saved successfully!', 'default')
-    if (!fullName || !email || !phoneNumber) {
+    if (!fullName || !user?.email || !phoneNumber) {
       SendNotification("Please fill the requied fields", "error");
       return;
     }
 
-    if (!email.includes("@") || !email.includes(".")) {
-      SendNotification("Please enter a valid email", "error");
+    if (!user?.email.includes("@") || !user?.email.includes(".")) {
+      SendNotification("Please enter a valid user?.email", "error");
       return;
     }
 
@@ -89,7 +89,7 @@ export default function GeneralSettings() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        email: email,
+        email: user?.email,
         name: fullName,
         contact: phoneNumber
       }),
@@ -157,7 +157,7 @@ export default function GeneralSettings() {
                   />
                 ) : (
                   <>
-                    <div className="hidden w-32 h-32 rounded-full border-2 border-dashed border-border-divider flex items-center justify-center bg-input overflow-hidden group-hover:border-accent-primary transition-all">
+                    <div className="hidden w-32 h-32 rounded-full border-2 border-dashed border-border-divider items-center justify-center bg-input overflow-hidden group-hover:border-accent-primary transition-all">
                       <User
                         size={48}
                         className="text-placeholder group-hover:scale-110 transition-transform"
@@ -183,7 +183,7 @@ export default function GeneralSettings() {
               </div>
 
               {avatar && (
-                <div className="hidden w-32 flex justify-around items-center">
+                <div className="hidden w-32 justify-around items-center">
                   <button
                     title="Edit"
                     className="relative p-2 rounded-md hover:bg-input-hover text-primary hover:text-accent-primary transition-colors"
@@ -228,8 +228,8 @@ export default function GeneralSettings() {
                     <Mail size={14} /> Email Address
                   </label>
                   <input
-                    type="email"
-                    value={email}
+                    type="user?.email"
+                    value={user?.email}
                     // disabled
                     onChange={() => {
                       SendNotification("Email change not allowed", "error");

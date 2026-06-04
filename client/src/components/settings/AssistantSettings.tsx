@@ -17,18 +17,22 @@ import { RootState } from "../../app/store";
 import { SendNotification } from "../SendNotification";
 
 export default function AssistantSettings() {
-  const { name: assistantName } = useSelector((state: RootState) => state.assistant);
-  const { user } = useSelector((state: RootState) => state.user);
-  console.log(user)
-  const [toneStyle, setToneStyle] = useState("Professional & Helpful");
-  const [systemPrompt, setSystemPrompt] = useState(
-    "You are a helpful AI assistant that provides accurate information...",
+  const { name: assistantName } = useSelector(
+    (state: RootState) => state.assistant,
   );
+  const { user } = useSelector((state: RootState) => state.user);
+  console.log(user);
+  const [toneStyle, setToneStyle] = useState("friendly");
+  const [systemPrompt, setSystemPrompt] = useState("");
 
   // State for Model Configuration
-  const llmProviderOptions = ['Google Gemini', 'Groq', 'Cerebras']
-  const [llmModelOptions, setLlmModelOptions] = useState(["gemini-2.5-flash-lite", "gemini-3.5-flash", "gemini-2.5-flash", "gemini-2.5-flash-lite"])
-  const [llmProvider, setLlmProvider] = useState("Google Gemini");
+  const llmProviderOptions = ["gemini", "groq", "cerebras"];
+  const [llmModelOptions, setLlmModelOptions] = useState([
+    "gemini-2.5-flash-lite",
+    "gemini-3.5-flash",
+    "gemini-2.5-flash",
+  ]);
+  const [llmProvider, setLlmProvider] = useState("gemini");
   const [modelSelection, setModelSelection] = useState("gemini-2.5-flash-lite");
   const [creativity, setCreativity] = useState(50);
   const [maxTokens, setMaxTokens] = useState(2048);
@@ -45,15 +49,18 @@ export default function AssistantSettings() {
 
   const loadPreferences = async () => {
     try {
-      const req = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/user/${user?.email}/preferences`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      })
+      const req = await fetch(
+        `${import.meta.env.VITE_SERVER_URL}/api/user/${user?.email}/preferences`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
       const res = await req.json();
       if (res.success) {
-        console.log(res.data)
+        console.log(res.data);
         setLlmProvider(res.data.llm_provider);
         setModelSelection(res.data.llm_model);
         setToneStyle(res.data.tone);
@@ -65,7 +72,7 @@ export default function AssistantSettings() {
       console.error("Error loading assistant settings:", error);
       SendNotification("Failed to load assistant settings", "error");
     }
-  }
+  };
 
   useEffect(() => {
     loadPreferences();
@@ -73,23 +80,26 @@ export default function AssistantSettings() {
 
   const handleUpdateSettings = async () => {
     try {
-      const req = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/user/preferences`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const req = await fetch(
+        `${import.meta.env.VITE_SERVER_URL}/api/user/preferences`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: user?.email,
+            llm_provider: llmProvider,
+            llm_model: modelSelection,
+            api_key: "",
+            tone: toneStyle,
+            language: "en",
+            max_tokens: maxTokens,
+            temperature: creativity / 100,
+            system_prompt: systemPrompt,
+          }),
         },
-        body: JSON.stringify({
-          email: user?.email,
-          llm_provider: llmProvider,
-          llm_model: modelSelection,
-          api_key: "",
-          tone: toneStyle,
-          language: "hi",
-          max_tokens: maxTokens,
-          temperature: creativity / 100,
-          system_prompt: systemPrompt,
-        }),
-      })
+      );
       const res = await req.json();
       console.log(res);
       SendNotification(res.message, res.success ? "success" : "error");
@@ -97,7 +107,6 @@ export default function AssistantSettings() {
       console.error("Error updating assistant settings:", error);
       SendNotification("Failed to update assistant settings", "error");
     }
-
   };
 
   const handleTestVoice = () => {
@@ -105,20 +114,37 @@ export default function AssistantSettings() {
     // Voice testing logic would go here
   };
 
-
   const handleLLMProviderChange = (provider: string) => {
     const ProviderOptions = {
-      'Google Gemini': ["gemini-2.5-flash-lite", "gemini-3.5-flash", "gemini-2.5-flash", "gemini-2.5-flash-lite"],
-      'Groq': ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "openai/gpt-oss-20b", "openai/gpt-oss-120b"],
-      'Cerebras': ["gpt-oss-120b", "llama3.1-8b", "qwen-3-235b-a22b-instruct-2507", "zai-glm-4.7"]
-    } as const
-    setLlmProvider(provider)
-    const options = ProviderOptions[provider as keyof typeof ProviderOptions] || []
-    setLlmModelOptions(options as unknown as string[])
-    if (options.length > 0) {
-      setModelSelection(options[0])
+      gemini: [
+        "gemini-2.5-flash-lite",
+        "gemini-3.5-flash",
+        "gemini-2.5-flash",
+      ],
+      groq: [
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant",
+        "openai/gpt-oss-20b",
+        "openai/gpt-oss-120b",
+      ],
+      cerebras: [
+        "gpt-oss-120b",
+        "llama3.1-8b",
+        "qwen-3-235b-a22b-instruct-2507",
+        "zai-glm-4.7",
+      ],
+    } as const;
+    setLlmProvider(provider);
+    const options =
+      ProviderOptions[provider as keyof typeof ProviderOptions] || [];
+    setLlmModelOptions(options as unknown as string[]);
+    if (options.length > 0 && !options.includes(modelSelection as never)) {
+      setModelSelection(options[0]);
     }
-  }
+  };
+  useEffect(() => {
+    handleLLMProviderChange(llmProvider);
+  }, [llmProvider]);
 
   return (
     <div className="space-y-8 animate-fade-in-up pb-10">
@@ -157,7 +183,12 @@ export default function AssistantSettings() {
                   type="text"
                   value={assistantName}
                   readOnly
-                  onClick={() => { SendNotification("Sorry! you can't change the name of ADIS", "error"); }}
+                  onClick={() => {
+                    SendNotification(
+                      "Sorry! you can't change the name of ADIS",
+                      "error",
+                    );
+                  }}
                   className="w-full bg-input border border-border-input rounded-lg px-4 py-2.5 text-primary focus:outline-none focus:border-border-input-focus transition-all"
                 />
               </div>
@@ -168,22 +199,16 @@ export default function AssistantSettings() {
                 <select
                   value={toneStyle}
                   onChange={(e) => setToneStyle(e.target.value)}
-                  className="w-full bg-input border border-border-input rounded-lg px-4 py-2.5 text-primary focus:outline-none focus:border-border-input-focus transition-all appearance-none cursor-pointer"
+                  className="capitalize w-full bg-input border border-border-input rounded-lg px-4 py-2.5 text-primary focus:outline-none focus:border-border-input-focus transition-all appearance-none cursor-pointer"
                 >
-                  <option className="bg-app text-primary">
-                    Professional & Helpful
+                  <option className="capitalize bg-app text-primary">
+                    friendly
                   </option>
-                  <option className="bg-app text-primary">
-                    Friendly & Casual
+                  <option className="capitalize bg-app text-primary">
+                    formal
                   </option>
-                  <option className="bg-app text-primary">
-                    Concise & Direct
-                  </option>
-                  <option className="bg-app text-primary">
-                    Creative & Playful
-                  </option>
-                  <option className="bg-app text-primary">
-                    Sarcastic & Humorous
+                  <option className="capitalize bg-app text-primary">
+                    concise
                   </option>
                 </select>
               </div>
@@ -194,12 +219,12 @@ export default function AssistantSettings() {
                 <Terminal size={16} /> Custom Instructions
               </label>
               <textarea
-                rows={4}
-                value={systemPrompt}
-                onChange={(e) => setSystemPrompt(e.target.value)}
-                placeholder="You are a helpful AI assistant that provides accurate information..."
-                className="w-full bg-input border border-border-input rounded-lg px-4 py-3 text-primary placeholder-placeholder focus:outline-none focus:border-border-input-focus transition-all resize-none font-mono text-sm"
-              />
+                  rows={4}
+                  value={systemPrompt ?? ""}
+                  onChange={(e) => setSystemPrompt(e.target.value)}
+                  placeholder="You are a helpful AI assistant that provides accurate information..."
+                  className="w-full bg-input border border-border-input rounded-lg px-4 py-3 text-primary placeholder-placeholder focus:outline-none focus:border-border-input-focus transition-all resize-none font-mono text-sm"
+                />
               <p className="text-[10px] text-text-muted">
                 This prompt defines the base behavior and rules for your AI.
               </p>
@@ -235,10 +260,10 @@ export default function AssistantSettings() {
                   className="w-full bg-input border border-border-input rounded-lg px-4 py-2.5 text-primary focus:outline-none focus:border-border-input-focus transition-all cursor-pointer"
                 >
                   {llmProviderOptions.map((provider, index) => (
-
-                    <option key={index} className="bg-app text-primary">{provider}</option>
+                    <option key={index} className="bg-app text-primary">
+                      {provider}
+                    </option>
                   ))}
-
                 </select>
               </div>
               <div className="space-y-3">
@@ -251,8 +276,9 @@ export default function AssistantSettings() {
                   className="w-full bg-input border border-border-input rounded-lg px-4 py-2.5 text-primary focus:outline-none focus:border-border-input-focus transition-all cursor-pointer"
                 >
                   {llmModelOptions.map((model, index) => (
-
-                    <option key={index} className="bg-app text-primary">{model}</option>
+                    <option key={index} className="bg-app text-primary">
+                      {model}
+                    </option>
                   ))}
                 </select>
               </div>

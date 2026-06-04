@@ -66,7 +66,7 @@ const InputField = ({
     }
   }, [user]);
 
-  const createNewSession = useCallback(async (userEmail: string, message: string) => {
+  const createNewSession = useCallback(async (userEmail: string) => {
     try {
       const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/session/create`, {
         method: "POST",
@@ -76,7 +76,6 @@ const InputField = ({
         credentials: "include",
         body: JSON.stringify({
           email: userEmail,
-          // message: message,
         }),
       });
 
@@ -98,7 +97,7 @@ const InputField = ({
     }
 
     if (!currentSessionId || currentSessionId.length === 0) {
-      const s_id = await createNewSession(user?.email!, typedMessage);
+      const s_id = await createNewSession(user?.email!);
       if (s_id) {
         currentSessionId = s_id.toString();
         

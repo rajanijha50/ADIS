@@ -1,4 +1,11 @@
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  HashRouter,
+} from "react-router-dom";
 import { useEffect } from "react";
 import { CustomToaster } from "./components/SendNotification";
 import Auth from "./components/Auth";
@@ -29,7 +36,7 @@ const IpcAuthHandler = () => {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <IpcAuthHandler />
       <Routes>
         <Route path="/auth" element={<Auth />} />
@@ -38,17 +45,16 @@ export default function App() {
         <Route element={<MainLayout />}>
           <Route path="/" element={<HeroSection />} />
           <Route path="/chat/:session_id" element={<MessageContainer />} />
-        </Route>
-        <Route path="/settings" element={<Settings />}>
-          <Route index element={<Navigate to="general" replace />} />
-          <Route path="general" element={<GeneralSettings />} />
-          <Route path="assistant" element={<AssistantSettings />} />
+          <Route path="/settings" element={<Settings />}>
+            <Route index element={<Navigate to="general" replace />} />
+            <Route path="general" element={<GeneralSettings />} />
+            <Route path="assistant" element={<AssistantSettings />} />
+          </Route>
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <CustomToaster />
-    </BrowserRouter>
-
+    </HashRouter>
   );
 }

@@ -1,10 +1,10 @@
 import { app, BrowserWindow, shell, ipcMain } from 'electron'
-import { createRequire } from 'node:module'
+// import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { startPythonServer, killPythonServer } from './python_bridge'
 
-const require = createRequire(import.meta.url)
+// const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // The built directory structure
@@ -60,9 +60,9 @@ function handleDeepLink(urlStr: string) {
 const gotTheLock = app.requestSingleInstanceLock()
 
 if (!gotTheLock) {
-  app.quit()
+  process.exit(0)
 } else {
-  app.on('second-instance', (event, commandLine) => {
+  app.on('second-instance', (_event, commandLine) => {
     if (win) {
       if (win.isMinimized()) win.restore()
       win.focus()
