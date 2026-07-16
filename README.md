@@ -9,8 +9,8 @@ ADIS is a sophisticated, voice-enabled desktop assistant built with a modern tec
 ADIS combines the power of Python's automation and AI capabilities with a rich, interactive 3D frontend powered by Three.js and React. It provides an intelligent assistant that can understand voice commands, control applications, search the web, and interact with various services.
 
 ### Key Features
-- **Voice Intelligence**: Advanced speech-to-text (STT) and text-to-speech (TTS) processing using Whisper and Piper
-- **Desktop Automation**: Control applications, open websites, manage system settings
+- **Voice Intelligence**: Advanced speech-to-text (STT) and text-to-speech (TTS) processing using Whisper
+- **Desktop Automation**: Open applications, open websites, manage system settings
 - **AI-Powered**: Command parsing, intent classification, and entity extraction
 - **Cross-Platform**: Built with Electron for a seamless desktop experience
 - **Modern UI**: Beautiful interface with Tailwind CSS and React Three Fiber for 3D visualizations
@@ -81,7 +81,6 @@ ADIS/
 │   ├── main.py                  # FastAPI application entry point
 │   ├── pyproject.toml           # Python project configuration
 │   ├── requirements.txt         # Project dependencies
-│   └── req.txt                  # Alternative requirements file
 │
 └── README.md                    # Project documentation
 ```
